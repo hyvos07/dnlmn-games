@@ -1,0 +1,87 @@
+# Adding a game
+
+The checklist for going from idea to a game live at `games.dnlmn.dev/<slug>/`.
+
+## 0. Pick the slug and engine
+
+- **Slug:** short, lowercase, permanent (`snake`, `tile-flip`). Check it's not reserved (ARCHITECTURE §3) or already used.
+- **Engine:**
+  - `vanilla` for tiny games (Snake, Pong, 2048). Plain Canvas or DOM.
+  - `kaplay` (default) for anything with sprites, scenes, collisions, or animation.
+  - Anything else needs an ADR first (see [DECISIONS.md](./DECISIONS.md)).
+
+## 1. Scaffold
+
+```bash
+pnpm new-game tile-flip --engine kaplay
+```
+
+This creates `games/tile-flip/` with:
+
+```
+game.json        # pre-filled, status: "draft"
+index.html
+src/main.ts      # initGame() + a start screen already wired up
+public/
+thumbnail.png    # placeholder, replace it
+CREDITS.md
+README.md        # from docs/templates/GAME_README.md
+package.json
+vite.config.ts
+```
+
+## 2. Develop
+
+```bash
+pnpm dev:game tile-flip     # http://localhost:5173/tile-flip/
+```
+
+While you build, keep these in mind:
+- Load assets via imports (`import heroUrl from './assets/hero.png'`) or `` `${import.meta.env.BASE_URL}sfx/jump.ogg` ``, never a bare `/sfx/jump.ogg`.
+- Save with `game.storage.set('highscore', n)`, not `localStorage`.
+- Implement `onPause`, `onResume`, and `onMuteChange` in `initGame`.
+- Put rules and scoring in plain functions under `src/logic/` and add a `*.test.ts` next to them.
+- Test touch input in the browser devtools' device mode early, not at the end.
+
+## 3. Fill in the metadata
+
+- `game.json`: title, tagline (≤ 60 chars), description, tags (from the vocabulary in RULES §6), input, controls, orientation.
+- `thumbnail.png`: at least 640px wide, 16:10 or 1:1, shows actual gameplay, not just the title. The launcher optimizes it.
+- `CREDITS.md`: every third-party asset with source URL + license. Write "All assets original" if that's true.
+- `README.md`: the one-pager (concept, controls, scoring, ideas for later).
+
+## 4. Verify like production
+
+```bash
+pnpm check
+pnpm test
+pnpm build          # fails on manifest errors or budget overruns
+pnpm preview        # open http://localhost:4321/tile-flip/  (port may differ)
+pnpm test:e2e
+```
+
+Manual pass on the preview:
+- [ ] No 404s in the network tab, no console errors
+- [ ] Start screen shows, and audio only starts after a click/tap
+- [ ] HUD works: Menu returns to `/`, Fullscreen, Mute (persists after reload), Pause, "?" panel shows controls
+- [ ] Switching tabs pauses the game
+- [ ] High score survives a reload
+- [ ] Mobile viewport: playable, no page scroll/zoom while playing, orientation prompt if applicable
+
+## 5. Publish
+
+- Set `"status": "hidden"` first if you want to test it on the real domain via direct URL without listing it.
+- Set `"status": "published"` and `"addedAt"` to today.
+- PR title: `feat(tile-flip): add Tile Flip`. Check the preview deploy and merge.
+- Tick the matching item in [PLAN.md](../PLAN.md), if there is one.
+
+## Troubleshooting
+
+| Symptom | Likely cause |
+|---|---|
+| Works in `dev:game`, blank in `preview` | A hard-coded absolute path. Search for `"/` and `'/` in `src/`. |
+| Assets 404 at `/assets/...` instead of `/<slug>/assets/...` | `vite.config.ts` isn't using `defineGameConfig`. |
+| Build fails: "slug mismatch" | `game.json` slug ≠ folder name. |
+| Build fails: "budget exceeded" | Compress audio, use atlases, lazy-load after the start screen, or justify `budgetKb` in the PR. |
+| Sound doesn't play on iOS | Audio context not resumed inside a user gesture. Start audio from the start-screen tap. |
+| Page scrolls/zooms on mobile during play | The SDK should prevent this. Make sure `initGame` runs before the game creates its canvas. |

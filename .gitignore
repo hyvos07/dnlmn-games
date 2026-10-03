@@ -1,0 +1,99 @@
+# ─────────────────────────────────────────────────────────────
+# Private docs (local only, never pushed)
+# Planning and roadmap notes. Repo-facing docs (README, AGENTS,
+# CLAUDE, RULES, docs/ARCHITECTURE, docs/DECISIONS,
+# docs/ADDING_A_GAME, templates, per-game README/CREDITS) stay
+# committed because tooling, agents, and asset licenses rely on them.
+# ─────────────────────────────────────────────────────────────
+/PRD.md
+/PLAN.md
+/docs/GODOT.md
+/docs/internal/
+*.local.md
+CLAUDE.local.md
+AGENTS.local.md
+notes/
+scratch/
+
+# ─────────────────────────────────────────────────────────────
+# Dependencies
+# ─────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ─────────────────────────────────────────────────────────────
+# Build output and caches
+# ─────────────────────────────────────────────────────────────
+dist/
+.turbo/
+.astro/
+.vite/
+*.tsbuildinfo
+.cache/
+.eslintcache
+
+# ─────────────────────────────────────────────────────────────
+# Tests
+# ─────────────────────────────────────────────────────────────
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# ─────────────────────────────────────────────────────────────
+# Cloudflare / Wrangler
+# ─────────────────────────────────────────────────────────────
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# ─────────────────────────────────────────────────────────────
+# Environment and secrets
+# ─────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─────────────────────────────────────────────────────────────
+# Godot (for the future Godot track)
+# Keep project.godot, *.import and export_presets.cfg committed.
+# ─────────────────────────────────────────────────────────────
+.godot/
+*.translation
+games/*/godot/export/
+games/*/godot/build/
+
+# ─────────────────────────────────────────────────────────────
+# Logs
+# ─────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─────────────────────────────────────────────────────────────
+# Claude Code / AI tooling (personal settings only)
+# ─────────────────────────────────────────────────────────────
+.claude/settings.local.json
+
+# ─────────────────────────────────────────────────────────────
+# Editors and OS
+# ─────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─────────────────────────────────────────────────────────────
+# Misc
+# ─────────────────────────────────────────────────────────────
+*.zip
+*.tgz

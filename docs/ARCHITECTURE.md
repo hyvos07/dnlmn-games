@@ -1,0 +1,220 @@
+# Architecture
+
+How the repo, build, URLs, and runtime fit together. The PRD covers *what* and *why*. This document covers *how*.
+
+---
+
+## 1. Big picture
+
+```
+                        ┌──────────────────────────────┐
+  games.dnlmn.dev  ───► │  Cloudflare static assets    │
+                        │  (one deployment = dist/)    │
+                        └──────────────┬───────────────┘
+                                       │
+          ┌────────────────────────────┼─────────────────────────────┐
+          │                            │                             │
+     /  (launcher)               /snake/ (game)                /dodge/ (game)
+     Astro, static HTML          Vite bundle, vanilla          Vite bundle, KAPLAY
+     reads all game.json         + @games/sdk HUD              + @games/sdk HUD
+```
+
+Everything is static files. There is no server code in the MVP. Each URL path is either a launcher page or a folder belonging to exactly one game.
+
+## 2. Repository layout
+
+```
+games-dnlmn/
+├── apps/
+│   └── launcher/                 # Astro site → builds to apps/launcher/dist
+│       ├── src/pages/            # index, about, 404
+│       ├── src/components/       # GameCard, TagFilter, ...
+│       └── src/content.config.ts # loads games/*/game.json
+├── games/
+│   ├── snake/
+│   │   ├── game.json             # manifest (source of truth)
+│   │   ├── index.html
+│   │   ├── src/main.ts
+│   │   ├── public/               # static assets copied as-is
+│   │   ├── thumbnail.png         # source thumbnail (launcher optimizes it)
+│   │   ├── CREDITS.md
+│   │   ├── README.md             # game one-pager (from docs/templates)
+│   │   ├── package.json          # name: @games/game-snake
+│   │   └── vite.config.ts        # one line: defineGameConfig(...)
+│   └── dodge/ ...
+├── packages/
+│   ├── sdk/                      # @games/sdk — HUD, storage, lifecycle
+│   ├── config/                   # @games/config — shared Vite/TS config, manifest schema
+│   └── templates/                # scaffolds used by `pnpm new-game`
+│       ├── vanilla/
+│       └── kaplay/
+├── scripts/
+│   ├── new-game.ts               # scaffolder
+│   ├── assemble.ts               # merges builds into dist/, validates
+│   └── check-manifests.ts
+├── tests/e2e/                    # Playwright smoke tests against dist/
+├── public-root/                  # _headers, robots.txt, favicon → copied to dist/
+├── dist/                         # build output (git-ignored)
+├── AGENTS.md  CLAUDE.md  PRD.md  PLAN.md  RULES.md  README.md
+├── docs/
+├── turbo.json  pnpm-workspace.yaml  biome.json  tsconfig.base.json
+└── wrangler.jsonc                # Cloudflare deploy config
+```
+
+## 3. URL map
+
+| Path | Owner | Notes |
+|---|---|---|
+| `/` | launcher | Game grid |
+| `/about/` | launcher | |
+| `/404.html` | launcher | Served for unknown paths |
+| `/_astro/*` | launcher | Hashed launcher assets |
+| `/og/*` | launcher | Generated OG images |
+| `/thumbs/*` | launcher | Optimized thumbnails |
+| `/<slug>/` | game | Game entry `index.html` |
+| `/<slug>/assets/*` | game | Hashed game assets from Vite |
+| `/api/*` | *(reserved)* | Future Worker endpoints (leaderboards) |
+
+**Reserved slugs** (the build rejects them as game slugs): `about`, `api`, `og`, `thumbs`, `assets`, `static`, `_astro`, `tag`, `tags`, `play`, `admin`, `404`.
+
+Slug format: `^[a-z][a-z0-9-]{1,30}$`. Slugs are permanent once published, because changing one breaks shared links and saved data.
+
+## 4. Game manifest
+
+`games/<slug>/game.json`, validated by a Zod schema in `packages/config/manifest.ts`.
+
+```jsonc
+{
+  "slug": "snake",                       // must equal folder name
+  "title": "Snake",
+  "tagline": "Eat. Grow. Don't bite yourself.",   // ≤ 60 chars, shown on card
+  "description": "Longer text for meta description and the HUD '?' panel.",
+  "engine": "vanilla",                   // "vanilla" | "kaplay" | "phaser" | "pixi" | "three" | "godot"
+  "tags": ["arcade", "classic"],         // lowercase, from the tag vocabulary in RULES.md §6
+  "input": ["keyboard", "touch"],        // "keyboard" | "mouse" | "touch" | "gamepad"
+  "controls": {                          // human-readable, shown in HUD '?' panel
+    "keyboard": "Arrow keys or WASD",
+    "touch": "Swipe to turn"
+  },
+  "orientation": "any",                  // "any" | "landscape" | "portrait"
+  "thumbnail": "thumbnail.png",          // relative to game folder, 16:10 or 1:1, ≥ 640px wide
+  "status": "published",                 // "draft" | "hidden" | "published"
+  "addedAt": "2026-10-02",
+  "version": "1.0.0",
+  "budgetKb": 1536                       // optional override; gzipped initial download cap
+}
+```
+
+| status | Built for prod? | Listed in launcher? | Reachable by URL? |
+|---|---|---|---|
+| `draft` | no | no | no |
+| `hidden` | yes | no | yes |
+| `published` | yes | yes | yes |
+
+## 5. Build pipeline
+
+```
+pnpm build
+  │
+  ├─ turbo run build                     (parallel, cached per package)
+  │    ├─ packages/sdk          → packages/sdk/dist
+  │    ├─ games/<slug>          → games/<slug>/dist      (vite build, base=/<slug>/)
+  │    └─ apps/launcher         → apps/launcher/dist     (astro build, reads game.json files)
+  │
+  └─ tsx scripts/assemble.ts
+       1. load + validate every game.json (schema, slug == folder, reserved, unique)
+       2. skip drafts
+       3. copy apps/launcher/dist/*     → dist/
+       4. copy games/<slug>/dist/*      → dist/<slug>/
+       5. copy public-root/*            → dist/
+       6. enforce size budgets (gzip size of files referenced by each index.html)
+       7. fail on any path collision
+```
+
+### Base path handling
+Each game's `vite.config.ts` is a single line:
+
+```ts
+import { defineGameConfig } from '@games/config/vite';
+export default defineGameConfig(import.meta.dirname);
+```
+
+`defineGameConfig` reads `game.json`, sets `base: '/<slug>/'`, sets `build.outDir`, and adds shared defaults (target, asset inlining limit, etc.). In game code, refer to assets through imports (`import url from './sprite.png'`) or `import.meta.env.BASE_URL`, never with hard-coded `/` paths.
+
+### Local dev
+- `pnpm dev:launcher` runs the Astro dev server. Clicking a card goes to a game path that doesn't exist in launcher dev, which is expected.
+- `pnpm dev:game <slug>` runs the Vite dev server at `http://localhost:5173/<slug>/`.
+- `pnpm build && pnpm preview` serves the assembled `dist/` exactly like production. Use it before calling anything done.
+
+## 6. `@games/sdk`
+
+Tiny (target ≤ 5 KB gzipped), zero dependencies, framework-agnostic. Every game uses it.
+
+```ts
+import { initGame } from '@games/sdk';
+import manifest from '../game.json';
+
+const game = initGame(manifest, {
+  onPause: () => k.debug.paused = true,
+  onResume: () => k.debug.paused = false,
+  onMuteChange: (muted) => setVolume(muted ? 0 : 1),
+});
+
+game.storage.get<number>('highscore', 0);
+game.storage.set('highscore', 120);
+game.muted;          // global mute, shared across all games
+game.exitToMenu();   // navigates to '/'
+```
+
+`initGame` does the following:
+- Mounts the **HUD**: a small corner overlay with Menu, Fullscreen, Mute, Pause, and "?" (description and controls from the manifest). Keyboard: `Esc` pauses, `F` toggles fullscreen, `M` toggles mute. Games can suppress keys they need.
+- Wires `visibilitychange` to `onPause` and `onResume`.
+- Shows a rotate prompt if `orientation` doesn't match on touch devices.
+- Sets mobile-friendly defaults: prevents pull-to-refresh, double-tap zoom, and context menu on the game canvas.
+- **Storage**: `localStorage` wrapped in try/catch, JSON-encoded, with keys prefixed `dnlmn:<slug>:`. Global settings use `dnlmn:global:`. If storage is unavailable (private mode), it falls back to in-memory.
+
+The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or global keyboard shortcuts.
+
+## 7. Launcher
+
+- Astro content collection loads `../../games/*/game.json` with the glob loader and the same Zod schema from `@games/config`.
+- Thumbnails are processed by `astro:assets` into AVIF/WebP at fixed sizes, emitted to `/thumbs/`.
+- OG images are generated at build time per game (title + thumbnail) to `/og/<slug>.png`, and the game's `index.html` references them through meta tags injected by `defineGameConfig` (Vite HTML transform).
+- The tag filter is a small vanilla script or Astro island. There's no framework runtime on the launcher unless an ADR adds one.
+
+## 8. Hosting and headers
+
+Cloudflare static assets (Workers with static assets, or Pages, depending on which is current and convenient at setup time), with the custom domain `games.dnlmn.dev`.
+
+`public-root/_headers`:
+
+```
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/:slug/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+```
+
+HTML keeps the default revalidation so deploys show up immediately.
+
+**Limits to remember:** 25 MiB per file, plus a maximum file count per deployment. Neither matters for KAPLAY or vanilla games, but both matter for Godot (see [GODOT.md](./GODOT.md)).
+
+## 9. Escape hatch: deploying a game separately
+
+If a game ever needs its own repo, its own stack, or files too large for the main deployment:
+
+1. Deploy it as its own project, built with `base: '/<slug>/'`.
+2. Keep a `game.json` in `games/<slug>/` with `"hosting": { "type": "external", "origin": "https://<project>.pages.dev" }`, so the launcher still lists it.
+3. Put a small Worker in front of `games.dnlmn.dev` that proxies `/<slug>/*` to that origin and passes everything else to static assets.
+
+URLs don't change for players. This step is deliberately **not** built until a game needs it (see ADR-005).
+
+## 10. Future backend (post-MVP)
+
+Leaderboards and similar features go under `/api/*`, served by a Cloudflare Worker with D1 (SQLite) or KV. Because games and API share the origin, there's no CORS to manage. Anti-cheat stays basic (rate limiting, server-side sanity bounds on scores). This is a hobby site, not a tournament platform.
