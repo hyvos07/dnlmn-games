@@ -49,10 +49,6 @@ function titleWave(): void {
           { to: random(-10, 10), duration: 130, ease: 'outQuad' },
           { to: 0, duration: 700, ease: 'outElastic(1, .4)' },
         ],
-        '--flash': [
-          { to: 1, duration: 100 },
-          { to: 0, duration: 600 },
-        ],
         composition: 'replace',
       });
     });
