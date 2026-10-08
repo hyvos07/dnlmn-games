@@ -193,7 +193,7 @@ The page is complete with the critical layer alone. Without JS, the filter falls
 
 ## 8. Hosting and headers
 
-Cloudflare static assets (Workers with static assets, or Pages, depending on which is current and convenient at setup time), with the custom domain `games.dnlmn.dev`.
+Cloudflare Workers with static assets only ([ADR-010](./DECISIONS.md#adr-010-workers-static-assets-previewed-with-wrangler-dev)), configured in `wrangler.jsonc`, with the custom domain `games.dnlmn.dev`. `pnpm preview` runs `wrangler dev`, so local preview uses the same asset routing, `_headers` and 404 handling as production.
 
 `public-root/_headers`:
 
@@ -208,7 +208,15 @@ Cloudflare static assets (Workers with static assets, or Pages, depending on whi
 
 /:slug/assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+/thumbs/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/og/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 ```
+
+Thumbnails and OG images keep stable, unhashed URLs (link previews depend on them), so they get a day of caching plus a week of stale-while-revalidate instead of `immutable`.
 
 HTML keeps the default revalidation so deploys show up immediately.
 

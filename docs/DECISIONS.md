@@ -94,3 +94,11 @@ A short log of decisions that would be expensive to reverse, so nobody (human or
   - Still no UI framework runtime (React/Svelte/etc.) without a further ADR.
 - **Consequences:** This partially supersedes the "near-zero JS" consequence of ADR-002. Astro remains the launcher. The launcher's Lighthouse mobile Performance target drops from the PRD's original ≥ 95 to ≥ 90, now recorded in RULES §4. `scripts/assemble.ts` enforces the two budgets separately. Motion code needs more care (fallbacks, reduced motion, CLS 0) and more e2e coverage.
 - **Revisit when:** Enhancement JS approaches 200 KB, Lighthouse mobile Performance drops below 90, or the motion starts hurting usability on low-end phones.
+
+## ADR-010: Workers static assets, previewed with `wrangler dev`
+- **Status:** Accepted
+- **Date:** 2026-10-08
+- **Context:** ADR-004 picked Cloudflare but left "Workers static assets or Pages" open. `pnpm preview` must behave exactly like production, including `_headers`, trailing-slash handling and the 404 page, or base-path and routing bugs slip through.
+- **Decision:** Deploy as a **Worker with static assets only** (`wrangler.jsonc`, `assets.directory: ./dist`, `not_found_handling: "404-page"`, `html_handling: "auto-trailing-slash"`). `pnpm preview` runs `wrangler dev` on port 4321, which serves `dist/` through the same asset engine locally, with no login needed. CI deploys with `wrangler deploy` and creates PR previews with `wrangler versions upload`.
+- **Consequences:** Local preview and Playwright tests exercise real Cloudflare routing. `/api/*` can later become Worker code in the same deployment (ARCHITECTURE §10). `wrangler` (with `workerd`) is a dev dependency, which adds install weight.
+- **Revisit when:** Cloudflare deprecates assets-only Workers, or preview/production behaviour diverges.

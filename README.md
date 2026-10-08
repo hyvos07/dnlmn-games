@@ -13,7 +13,7 @@ pnpm install
 pnpm dev:launcher                      # menu
 pnpm dev:game snake                    # one game
 pnpm new-game my-game --engine kaplay  # new game
-pnpm build && pnpm preview             # production-identical local build
+pnpm build && pnpm preview             # production-identical local build → http://localhost:4321
 ```
 
 ## Docs

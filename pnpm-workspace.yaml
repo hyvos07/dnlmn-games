@@ -1,0 +1,17 @@
+packages:
+  - apps/*
+  - games/*
+  - packages/*
+  - "!packages/templates/**"
+
+# pnpm blocks dependency build scripts by default. Approve only what needs them.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+
+minimumReleaseAgeExclude:
+  - "@playwright/test@1.64.0"
+  - astro@7.3.7
+  - playwright-core@1.64.0
+  - playwright@1.64.0

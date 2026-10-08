@@ -25,8 +25,9 @@ pnpm check                            # Biome lint+format check, tsc, manifest v
 pnpm check:fix                        # auto-fix formatting/lint
 pnpm test                             # Vitest unit tests
 pnpm build                            # build all + assemble into dist/ (enforces budgets)
-pnpm preview                          # serve dist/ exactly like production
+pnpm preview                          # serve dist/ like production (wrangler dev → http://localhost:4321)
 pnpm test:e2e                         # Playwright smoke tests against dist/ (run build first)
+PW_CHANNEL=chrome pnpm test:e2e       # same, using your installed Chrome instead of Playwright's
 pnpm build --filter @games/game-<slug>   # build a single game (Turbo filter)
 ```
 
@@ -90,6 +91,8 @@ If your change alters commands, structure, or conventions, update this file and 
 Private notes go in `docs/internal/` or any `*.local.md` file. Both are gitignored.
 
 ## Context worth knowing
+
+- Toolchain: Node 24 LTS (`.nvmrc`), pnpm 12 (`packageManager`), TypeScript 6 (pinned below 7 until `@astrojs/check` supports it). pnpm 12 blocks dependency build scripts unless they're listed under `allowBuilds` in `pnpm-workspace.yaml`, and it delays very fresh releases (`minimumReleaseAge`).
 
 - Godot is a planned **later** track (Phase 6 of the roadmap). Don't introduce Godot or other heavy engines in normal game work. Do keep `engine: "godot"` working in the manifest schema.
 - There is no backend yet. `/api/*` is reserved for future Cloudflare Workers.

@@ -1,0 +1,31 @@
+{
+  "name": "games-dnlmn",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.10.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:launcher": "pnpm --filter @games/launcher dev",
+    "dev:game": "tsx scripts/dev-game.ts",
+    "check": "biome check . && turbo run typecheck && tsc -p tsconfig.json && tsx scripts/check-manifests.ts",
+    "check:fix": "biome check --write .",
+    "test": "vitest run",
+    "build": "turbo run build && tsx scripts/assemble.ts",
+    "preview": "wrangler dev --port 4321",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@games/config": "workspace:*",
+    "@playwright/test": "1.64.0",
+    "@types/node": "24.19.1",
+    "happy-dom": "20.14.5",
+    "tsx": "4.23.15",
+    "turbo": "2.11.7",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3",
+    "wrangler": "4.148.0"
+  }
+}

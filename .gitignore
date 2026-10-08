@@ -97,3 +97,8 @@ desktop.ini
 # ─────────────────────────────────────────────────────────────
 *.zip
 *.tgz
+# ─────────────────────────────────────────────────────────────
+# Generated launcher images (built from games/*/thumbnail.png)
+# ─────────────────────────────────────────────────────────────
+apps/launcher/public/thumbs/
+apps/launcher/public/og/
