@@ -1,0 +1,19 @@
+{
+  "name": "@games/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HUD, namespaced storage, pause/mute lifecycle and orientation prompt shared by every game",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "happy-dom": "20.14.5",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}

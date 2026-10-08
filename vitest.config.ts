@@ -5,6 +5,7 @@ export default defineConfig({
     passWithNoTests: true,
     projects: [
       'packages/config',
+      'packages/sdk',
       'games/*',
       { test: { name: 'scripts', include: ['scripts/**/*.test.ts'], environment: 'node' } },
     ],
