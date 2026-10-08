@@ -12,7 +12,7 @@ A collection of small browser games behind one game-selector page. Every game is
 pnpm install
 pnpm dev:launcher                      # menu
 pnpm dev:game snake                    # one game
-pnpm new-game my-game --engine kaplay  # new game
+pnpm new-game my-game --engine vanilla # new game (kaplay template: Phase 3)
 pnpm build && pnpm preview             # production-identical local build → http://localhost:4321
 ```
 

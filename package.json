@@ -9,6 +9,7 @@
   "scripts": {
     "dev:launcher": "pnpm --filter @games/launcher dev",
     "dev:game": "tsx scripts/dev-game.ts",
+    "new-game": "tsx scripts/new-game.ts",
     "check": "biome check . && turbo run typecheck && tsc -p tsconfig.json && tsx scripts/check-manifests.ts",
     "check:fix": "biome check --write .",
     "test": "vitest run",

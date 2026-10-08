@@ -13,7 +13,7 @@ The checklist for going from idea to a game live at `games.dnlmn.dev/<slug>/`.
 ## 1. Scaffold
 
 ```bash
-pnpm new-game tile-flip --engine kaplay
+pnpm new-game tile-flip --engine vanilla   # kaplay template arrives in Phase 3
 ```
 
 This creates `games/tile-flip/` with:
@@ -23,7 +23,7 @@ game.json        # pre-filled, status: "draft"
 index.html
 src/main.ts      # initGame() + a start screen already wired up
 public/
-thumbnail.png    # placeholder, replace it
+thumbnail.png    # placeholder, replace it with `pnpm thumbnail tile-flip`
 CREDITS.md
 README.md        # from docs/templates/GAME_README.md
 package.json
@@ -46,7 +46,7 @@ While you build, keep these in mind:
 ## 3. Fill in the metadata
 
 - `game.json`: title, tagline (≤ 60 chars), description, tags (from the vocabulary in RULES §6), input, controls, orientation.
-- `thumbnail.png`: at least 640px wide, 16:10 or 1:1, shows actual gameplay, not just the title. The launcher optimizes it.
+- `thumbnail.png`: at least 640px wide, 16:10 or 1:1, shows actual gameplay, not just the title. The launcher optimizes it. `pnpm thumbnail <slug> [--wait <ms>] [--selector <css>]` builds the game, lets it run in a headless browser, hides the HUD and overlays, and screenshots the canvas (or a `[data-thumbnail]` element). Give your title screen an attract/demo mode so there's real gameplay to capture.
 - `CREDITS.md`: every third-party asset with source URL + license. Write "All assets original" if that's true.
 - `README.md`: the one-pager (concept, controls, scoring, ideas for later).
 
