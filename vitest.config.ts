@@ -6,6 +6,7 @@ export default defineConfig({
     projects: [
       'packages/config',
       'packages/sdk',
+      'apps/launcher',
       'games/*',
       { test: { name: 'scripts', include: ['scripts/**/*.test.ts'], environment: 'node' } },
     ],

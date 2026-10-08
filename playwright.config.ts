@@ -24,7 +24,8 @@ export default defineConfig({
   webServer: {
     command: `pnpm exec wrangler dev --port ${PORT}`,
     url: `http://127.0.0.1:${PORT}/`,
-    reuseExistingServer: !process.env.CI,
+    // Never test a stray server: fail loudly if the port is already taken.
+    reuseExistingServer: false,
     timeout: 60_000,
   },
 });
