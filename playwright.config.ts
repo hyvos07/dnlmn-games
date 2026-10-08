@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4321;
+// Override with E2E_PORT to run tests while `pnpm dev` holds 4321.
+const PORT = Number(process.env.E2E_PORT) || 4321;
 // Optional: run against an installed browser locally, e.g. PW_CHANNEL=chrome pnpm test:e2e.
 const channel = process.env.PW_CHANNEL || undefined;
 
@@ -12,7 +13,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    // wrangler dev binds 127.0.0.1; `localhost` could reach a `pnpm dev` server on ::1 instead.
+    baseURL: `http://127.0.0.1:${PORT}`,
     trace: 'retain-on-failure',
   },
   projects: [
@@ -20,8 +22,8 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'], channel } },
   ],
   webServer: {
-    command: 'pnpm preview',
-    url: `http://localhost:${PORT}/`,
+    command: `pnpm exec wrangler dev --port ${PORT}`,
+    url: `http://127.0.0.1:${PORT}/`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },

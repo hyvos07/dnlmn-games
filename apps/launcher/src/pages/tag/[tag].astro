@@ -1,0 +1,13 @@
+---
+import GamesPage from '../../components/GamesPage.astro';
+import { getGames, tagCounts } from '../../lib/games.ts';
+
+export async function getStaticPaths() {
+  const tags = tagCounts(await getGames());
+  return tags.map(({ tag }) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params;
+---
+
+<GamesPage tag={tag} />

@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+import { getGames, label, tagCounts } from '../lib/games.ts';
+import GameCard from './GameCard.astro';
+import Hero from './Hero.astro';
+import TagFilter from './TagFilter.astro';
+
+interface Props {
+  /** Set on /tag/<tag>/ pages: the static, no-JS version of the filter. */
+  tag?: string;
+}
+const { tag } = Astro.props;
+const games = await getGames();
+const tags = tagCounts(games);
+const total = games.length;
+const visible = tag ? games.filter((g) => g.tags.includes(tag as never)).length : total;
+
+// Filtering is pure CSS keyed off <html data-tag> / [data-touch], so it works before
+// JS runs (and without JS on the /tag/ pages). JS only flips the attributes.
+const tagList = tags.map((t) => t.tag);
+const hide = tagList.map((t) => `html[data-tag="${t}"] .card-item:not([data-tags~="${t}"])`);
+const on = [
+  'html:not([data-tag]) .chip[data-tag=""]',
+  ...tagList.map((t) => `html[data-tag="${t}"] .chip[data-tag="${t}"]`),
+];
+const css = [
+  hide.length ? `${hide.join(',')}{display:none}` : '',
+  'html[data-touch] .card-item:not([data-touch]){display:none}',
+  `${on.join(',')}{background:var(--fg);border-color:var(--fg);color:var(--bg)}`,
+  `${on.map((s) => `${s} .chip-n`).join(',')}{background:color-mix(in srgb,var(--bg) 18%,transparent)}`,
+].join('');
+
+const upNext = [
+  { kicker: 'Next up', title: 'An action game', note: 'Built with KAPLAY' },
+  { kicker: 'After that', title: 'A puzzle', note: 'Touch-first' },
+];
+---
+
+<Base
+  title={tag ? `${label(tag)} games` : undefined}
+  path={tag ? `/tag/${tag}/` : '/'}
+  scene
+  tag={tag}
+  tags={tagList}
+  css={css}
+  nav="games"
+>
+  <Hero games={games} />
+  <section class="section wrap" id="games" data-section="grid" aria-labelledby="games-title">
+    <header class="section-head">
+      <p class="kicker">01 · Play</p>
+      <h2 id="games-title">The games</h2>
+      <p class="count"><span data-count>{visible}</span> <span data-count-label>{visible === 1 ? 'game' : 'games'}</span></p>
+    </header>
+    <TagFilter tags={tags} total={total} active={tag} />
+    <ol class="grid" data-grid>
+      {games.map((game) => <GameCard game={game} />)}
+      {
+        upNext.map((item) => (
+          <li class="card-item ghost" aria-hidden="true">
+            <div class="ghost-card">
+              <p class="kicker">{item.kicker}</p>
+              <strong>{item.title}</strong>
+              <span>{item.note}</span>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="empty" data-empty hidden>
+      No games match that filter yet. <a href="/#games" data-tag="">Show all games</a>
+    </p>
+    <p class="sr-only" aria-live="polite" data-status></p>
+  </section>
+</Base>

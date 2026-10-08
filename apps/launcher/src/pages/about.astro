@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import { getGames } from '../lib/games.ts';
+
+const count = (await getGames()).length;
+---
+
+<Base
+  title="About"
+  description="What Games by dnlmn is, how it's built, and the rules it follows."
+  path="/about/"
+  nav="about"
+>
+  <article class="prose wrap">
+    <p class="kicker">About</p>
+    <h1>Small games, no strings.</h1>
+    <p>
+      <strong>Games by dnlmn</strong> is a personal arcade: {count === 1 ? 'one game' : `${count} games`}{' '}
+      so far, each playable in the browser in a couple of seconds. No accounts, no installs, no ads.
+    </p>
+
+    <h2>The rules</h2>
+    <ul>
+      <li>Free and instant. Every game loads fast enough to play on a phone over 4G.</li>
+      <li>No cookies and no trackers. High scores and settings stay on your device.</li>
+      <li>Every game has a pause, a mute, and a way back to this menu.</li>
+      <li>Keyboard and touch are first-class, and motion respects your system settings.</li>
+    </ul>
+
+    <h2>How it's built</h2>
+    <p>
+      One static site on Cloudflare. This menu is built with Astro, with a WebGL scene (OGL) and
+      anime.js layered on top as an enhancement. Each game is its own small Vite + TypeScript bundle.
+    </p>
+
+    <h2>Credits</h2>
+    <p>
+      Type: Bricolage Grotesque and Instrument Sans, both under the SIL Open Font License. Each game
+      lists its own assets and licenses in its credits.
+    </p>
+    <p><a href="/#games">Back to the games →</a></p>
+  </article>
+</Base>

@@ -1,11 +1,23 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "includes": ["**", "!**/dist", "!**/.astro", "!**/.turbo", "!packages/templates/**/game.json"]
   },
-  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
-  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
   "linter": {
     "rules": {
       "preset": "recommended",
@@ -14,8 +26,8 @@
           "level": "error",
           "options": {
             "deniedGlobals": {
-              "localStorage": "Use game.storage from @games/sdk (RULES §3).",
-              "sessionStorage": "Use game.storage from @games/sdk (RULES §3)."
+              "localStorage": "Use game.storage from @games/sdk (RULES \u00a73).",
+              "sessionStorage": "Use game.storage from @games/sdk (RULES \u00a73)."
             }
           }
         }
@@ -25,7 +37,24 @@
   "overrides": [
     {
       "includes": ["packages/sdk/src/storage.ts"],
-      "linter": { "rules": { "style": { "noRestrictedGlobals": "off" } } }
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.astro"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedImports": "off",
+            "noUnusedVariables": "off"
+          }
+        }
+      }
     }
   ]
 }

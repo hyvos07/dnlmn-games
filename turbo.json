@@ -3,7 +3,7 @@
   "ui": "stream",
   "agentGuidance": false,
   "globalDependencies": ["tsconfig.base.json"],
-  "globalPassThroughEnv": ["CI", "PW_CHANNEL"],
+  "globalPassThroughEnv": ["CI", "PW_CHANNEL", "E2E_PORT"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

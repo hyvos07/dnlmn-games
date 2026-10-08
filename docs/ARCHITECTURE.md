@@ -71,6 +71,8 @@ games-dnlmn/
 | `/_astro/*` | launcher | Hashed launcher assets |
 | `/og/*` | launcher | Generated OG images |
 | `/thumbs/*` | launcher | Optimized thumbnails |
+| `/tag/<tag>/` | launcher | Pre-filtered grid: the no-JS fallback for the tag filter |
+| `/sitemap.xml` | launcher | |
 | `/<slug>/` | game | Game entry `index.html` |
 | `/<slug>/assets/*` | game | Hashed game assets from Vite |
 | `/api/*` | *(reserved)* | Future Worker endpoints (leaderboards) |
@@ -179,10 +181,12 @@ The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or g
 
 ## 7. Launcher
 
-- Astro content collection loads `../../games/*/game.json` with the glob loader and the same Zod schema from `@games/config`.
-- Thumbnails are processed by `astro:assets` into AVIF/WebP at fixed sizes, emitted to `/thumbs/`.
-- OG images are generated at build time per game (title + thumbnail) to `/og/<slug>.png`, and the game's `index.html` references them through meta tags injected by `defineGameConfig` (Vite HTML transform).
+- Astro content collection loads `../../games/*/game.json` with the glob loader and the same Zod schema from `@games/config`. Only `published` games are listed.
+- `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, and a basic OG card per game to `/og/<slug>.png` (plus `/og/home.png`). Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
+- Theme: dark only. Accent tokens come from `@games/config/theme` (`ACCENT`) and are inlined as CSS variables. In `pnpm dev`, `?accent=<name>` or the corner picker previews other presets.
+- Fonts (Bricolage Grotesque 800, Instrument Sans variable, latin subset) are self-hosted, preloaded and use `font-display: optional`, so a late font never shifts layout.
 - The tag filter is a small vanilla script or Astro island. There's no framework runtime on the launcher unless an ADR adds one.
+- Filter state lives on `<html data-tag="…" data-touch>`, and page-generated CSS hides non-matching cards. A tiny inline head script applies `?tag=`/`?touch=1` before first paint (no layout shift). `scripts/boot.ts` flips the attributes on chip clicks and syncs the URL with `pushState`. Without JS, chips are links to the static `/tag/<tag>/` pages.
 
 ### Critical path vs enhancement ([ADR-009](./DECISIONS.md#adr-009-motion-rich-launcher))
 
@@ -191,7 +195,14 @@ The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or g
 | Critical | HTML, CSS, `boot` script (filter, URL sync, navigation) and its static imports | ≤ 75 KB | Immediately |
 | Enhancement | WebGL scene (OGL), anime.js, motion code | ≤ 200 KB | Dynamic `import()` after first paint/idle, never under `prefers-reduced-motion` |
 
-The page is complete with the critical layer alone. Without JS, the filter falls back to static `/tag/<tag>/` pages. `assemble.ts` measures both layers: the critical set is every file referenced by the launcher HTML plus its static JS import graph, and every other launcher JS chunk counts as enhancement.
+The page is complete with the critical layer alone. Without JS, the filter falls back to static `/tag/<tag>/` pages.
+
+Enhancement modules (`apps/launcher/src/scripts/enhance/`):
+- `scene.ts`: one OGL renderer and canvas, seven instanced low-poly meshes (`pieces.ts`), with all motion in the vertex shader. The mood eases per section (hero lively, grid receded, footer pieces form a snake). It pauses when the tab is hidden, caps DPR at 2 (1.5 on touch), uses fewer pieces on low-end devices, and drops resolution if frames run long.
+- `motion.ts` (anime.js): the title "power-on" wave and letter bounces, card reveal on scroll, 3D tilt + glare (CSS custom properties), the exit wipe into a game, and FLIP filtering.
+- `trail.ts`: the footer snake, an SVG that chases the cursor on a grid and only runs while the footer is visible.
+
+`assemble.ts` measures both layers: the critical set is every file referenced by the launcher HTML plus its static JS import graph, and every other launcher JS chunk counts as enhancement.
 
 ## 8. Hosting and headers
 

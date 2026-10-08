@@ -1,17 +1,26 @@
 ---
-// Placeholder until the full launcher lands (PLAN Phase 2).
+import Base from '../layouts/Base.astro';
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Not found · Games by dnlmn</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  </head>
-  <body>
-    <h1>Game over: page not found</h1>
-    <p><a href="/">Back to the games</a></p>
-  </body>
-</html>
+<Base title="Not found" description="This page doesn't exist." path="/404.html">
+  <article class="prose wrap">
+    <p class="kicker">Error 404</p>
+    <h1>Game over.</h1>
+    <svg viewBox="0 0 320 64" width="320" height="64" aria-hidden="true" style="max-width:100%;color:var(--accent)">
+      <path
+        d="M14 44H124V22H190V44H262"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="16"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+      <path
+        d="M261 36.5l5 5m0-5l-5 5M261 46.5l5 5m0-5l-5 5"
+        stroke="var(--bg)"
+        stroke-width="2"
+        stroke-linecap="round"></path>
+    </svg>
+    <p>This page ran into a wall. It doesn't exist, or it moved.</p>
+    <p><a class="btn primary" href="/">Back to the games</a></p>
+  </article>
+</Base>

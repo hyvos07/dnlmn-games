@@ -1,0 +1,68 @@
+---
+import { type Game, label, pad } from '../lib/games.ts';
+
+interface Props {
+  game: Game;
+}
+const { game } = Astro.props;
+const srcset = (ext: string) =>
+  `/thumbs/${game.slug}-400.${ext} 400w, /thumbs/${game.slug}-800.${ext} 800w`;
+const sizes = '(min-width: 1400px) 440px, (min-width: 720px) 45vw, 92vw';
+const icons: Record<string, string> = {
+  keyboard:
+    '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7.5 14h9"/>',
+  touch:
+    '<path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0v4.5a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4.2 15a1.6 1.6 0 0 1 2.5-2L9 15"/>',
+  mouse: '<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v3"/>',
+  gamepad:
+    '<path d="M6 8h12a4 4 0 0 1 4 4v1a4 4 0 0 1-7 2.6L14 15h-4l-1 .6A4 4 0 0 1 2 13v-1a4 4 0 0 1 4-4Z"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 13.5h.01"/>',
+};
+---
+
+<li class="card-item" data-tags={game.tags.join(' ')} data-touch={game.touch ? '' : undefined}>
+  <a class="card" href={game.href} data-game-link>
+    <div class="card-media">
+      <picture>
+        <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
+        <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
+        <img
+          src={`/thumbs/${game.slug}-800.webp`}
+          width="800"
+          height="800"
+          alt={game.alt}
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+      <span class="card-no" aria-hidden="true">No. {pad(game.number)}</span>
+      <span class="card-play" aria-hidden="true">Play <span>▶</span></span>
+      <span class="glare" aria-hidden="true"></span>
+    </div>
+    <div class="card-body">
+      <h3 class="card-title">{game.title}</h3>
+      <p class="card-tagline">{game.tagline}</p>
+      <ul class="card-meta">
+        {game.tags.map((tag) => <li class="tag">{label(tag)}</li>)}
+        <li class="inputs">
+          {
+            game.input.map((input) => (
+              <span title={label(input)}>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  set:html={icons[input] ?? ''}
+                />
+                <span class="sr-only">{label(input)}</span>
+              </span>
+            ))
+          }
+        </li>
+      </ul>
+    </div>
+  </a>
+</li>

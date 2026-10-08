@@ -1,0 +1,29 @@
+---
+interface Props {
+  current?: 'games' | 'about' | undefined;
+}
+const { current } = Astro.props;
+---
+
+<header class="masthead wrap">
+  <a class="mark" href="/" aria-label="Games by dnlmn, home">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.08"></rect>
+      <path
+        d="M8 22V12a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2a4 4 0 0 1-4 4h-4"
+        fill="none"
+        stroke="var(--accent)"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+      <circle cx="22" cy="23" r="2.5" fill="var(--secondary)"></circle>
+    </svg>
+    <span>dnlmn<span aria-hidden="true">/</span>games</span>
+  </a>
+  <nav aria-label="Main">
+    <ul class="nav">
+      <li><a href="/#games" aria-current={current === 'games' ? 'page' : undefined}>Games</a></li>
+      <li><a href="/about/" aria-current={current === 'about' ? 'page' : undefined}>About</a></li>
+    </ul>
+  </nav>
+</header>

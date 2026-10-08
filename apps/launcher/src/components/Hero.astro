@@ -1,0 +1,44 @@
+---
+import type { Game } from '../lib/games.ts';
+
+interface Props {
+  games: Game[];
+}
+const { games } = Astro.props;
+const latest = games[0];
+const count = games.length;
+// Letters are split at build time so motion can animate them. The h1's accessible
+// name comes from the sr-only copy; the visible letters are painted at first paint.
+const split = (word: string) => [...word];
+---
+
+<section class="hero wrap" id="top" data-section="hero" aria-labelledby="hero-title">
+  <div class="hero-meta">
+    <span>Issue Nº 01</span>
+    <span>{count} {count === 1 ? 'game' : 'games'} · more on the way</span>
+    <span>Est. 2026</span>
+  </div>
+  <h1 class="title" id="hero-title" data-title>
+    <span class="sr-only">Games by dnlmn</span>
+    <span class="line" aria-hidden="true">{split('Games').map((c) => <span class="ch">{c}</span>)}</span>
+    <span class="line line-2" aria-hidden="true"
+      ><span class="by">by</span>{split('dnlmn').map((c) => <span class="ch">{c}</span>)}</span
+    >
+  </h1>
+  <div class="hero-foot">
+    <p class="lede">
+      Small browser games, made with care. <strong>Free, instant, no install</strong>, and no
+      tracking.
+    </p>
+    <div class="ctas">
+      <a class="btn primary" href="#games">Start playing <span class="arrow" aria-hidden="true">↓</span></a>
+      {
+        latest && (
+          <a class="btn ghost" href={latest.href} data-game-link>
+            Latest: {latest.title} <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        )
+      }
+    </div>
+  </div>
+</section>

@@ -51,9 +51,10 @@ proxy.on('error', (error) => {
   console.error(`\n✖ can't listen on :${SITE_PORT} (${error.message}). Is pnpm preview running?`);
   stop(1);
 });
-proxy.listen(SITE_PORT);
+// Same address as `pnpm preview` (wrangler), so running both is a clear error, not a silent clash.
+proxy.listen(SITE_PORT, '127.0.0.1');
 
-console.log(`\n  Site with hot reload: http://localhost:${SITE_PORT}/`);
+console.log(`\n  Site with hot reload: http://127.0.0.1:${SITE_PORT}/`);
 for (const slug of Object.keys(ports))
   console.log(`    /${slug}/ → game dev server :${ports[slug]}`);
 console.log('');
