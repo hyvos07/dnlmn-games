@@ -143,7 +143,8 @@ export default defineGameConfig(import.meta.dirname);
 `defineGameConfig` reads `game.json`, sets `base: '/<slug>/'`, sets `build.outDir`, and adds shared defaults (target, asset inlining limit, etc.). In game code, refer to assets through imports (`import url from './sprite.png'`) or `import.meta.env.BASE_URL`, never with hard-coded `/` paths.
 
 ### Local dev
-- `pnpm dev:launcher` runs the Astro dev server. Clicking a card goes to a game path that doesn't exist in launcher dev, which is expected.
+- `pnpm dev` runs everything with hot reload on one origin, `http://localhost:4321`. Each game's Vite dev server gets its own port (5201, 5202, …), the launcher runs on 4322, and a small proxy (`scripts/lib/dev-proxy.ts`) routes `/<slug>/` and its HMR websocket to the right game, so launcher links work like in production.
+- `pnpm dev:launcher` runs only the Astro dev server. Clicking a card goes to a game path that doesn't exist there, which is expected.
 - `pnpm dev:game <slug>` runs the Vite dev server at `http://localhost:5173/<slug>/`.
 - `pnpm build && pnpm preview` serves the assembled `dist/` exactly like production. Use it before calling anything done.
 

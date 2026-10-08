@@ -10,7 +10,8 @@ A collection of small browser games behind one game-selector page. Every game is
 
 ```bash
 pnpm install
-pnpm dev:launcher                      # menu
+pnpm dev                               # whole site with hot reload → http://localhost:4321
+pnpm dev:launcher                      # menu only
 pnpm dev:game snake                    # one game
 pnpm new-game my-game --engine vanilla # new game (kaplay template: Phase 3)
 pnpm build && pnpm preview             # production-identical local build → http://localhost:4321

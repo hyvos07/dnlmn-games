@@ -18,7 +18,8 @@ Read before non-trivial work:
 
 ```bash
 pnpm install                          # install everything
-pnpm dev:launcher                     # Astro dev server for the menu
+pnpm dev                              # whole site with hot reload → http://localhost:4321
+pnpm dev:launcher                     # Astro dev server for the menu only
 pnpm dev:game <slug>                  # Vite dev server → http://localhost:5173/<slug>/
 pnpm new-game <slug> --engine vanilla # scaffold a game (vanilla now; kaplay template lands in Phase 3)
 pnpm thumbnail <slug>                 # screenshot real gameplay into games/<slug>/thumbnail.png
