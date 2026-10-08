@@ -17,9 +17,7 @@ interface Cell {
 const CELL = 22;
 const STEP_AUTO_MS = 64;
 const STEP_GUIDED_MS = 44;
-const BASE_LENGTH = 7;
-const MAX_LENGTH = 26;
-const GROW = 3;
+const LENGTH = 7;
 /** Fraction of a cell the drawn body leaves free on each side (stroke is 64% wide). */
 const INSET = 0.16;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -40,7 +38,6 @@ export function startTrail(footer: HTMLElement, svg: SVGSVGElement): void {
   let body: Cell[] = [];
   let prev: Cell[] = [];
   let facing: Cell = { x: -1, y: 0 };
-  let wanted = BASE_LENGTH;
   let apple: Cell | null = null;
   let guide: Cell | null = null;
   let acc = 0;
@@ -175,13 +172,12 @@ export function startTrail(footer: HTMLElement, svg: SVGSVGElement): void {
 
   /** Finds a straight free run for a fresh snake, preferring the bottom right. */
   const spawn = () => {
-    wanted = BASE_LENGTH;
     for (let y = rows - 2; y >= 0; y--) {
       let run = 0;
       for (let x = cols - 2; x >= 0; x--) {
         run = open({ x, y }) ? run + 1 : 0;
-        if (run === BASE_LENGTH) {
-          body = Array.from({ length: BASE_LENGTH }, (_, i) => ({ x: x + i, y }));
+        if (run === LENGTH) {
+          body = Array.from({ length: LENGTH }, (_, i) => ({ x: x + i, y }));
           prev = body;
           facing = { x: -1, y: 0 };
           return;
@@ -256,10 +252,9 @@ export function startTrail(footer: HTMLElement, svg: SVGSVGElement): void {
     const next = firstStep(parent, goal);
     facing = { x: next.x - head.x, y: next.y - head.y };
     const ate = apple !== null && same(next, apple);
-    if (ate) wanted = Math.min(MAX_LENGTH, wanted + GROW);
-    // Grow one cell per step toward `wanted`.
-    const grown = [next, ...body];
-    body = grown.length > wanted ? grown.slice(0, wanted) : grown;
+    // Fixed length: the head advances one cell and the tail follows, so eating an apple
+    // never makes the snake cover more of the footer.
+    body = [next, ...body.slice(0, -1)];
     if (ate) {
       pop(next);
       placeApple();
