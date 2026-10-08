@@ -117,7 +117,6 @@ Slug format: `^[a-z][a-z0-9-]{1,30}$`. Slugs are permanent once published, becau
 pnpm build
   │
   ├─ turbo run build                     (parallel, cached per package)
-  │    ├─ packages/sdk          → packages/sdk/dist
   │    ├─ games/<slug>          → games/<slug>/dist      (vite build, base=/<slug>/)
   │    └─ apps/launcher         → apps/launcher/dist     (astro build, reads game.json files)
   │
@@ -130,6 +129,8 @@ pnpm build
        6. enforce size budgets (gzip size of files referenced by each index.html)
        7. fail on any path collision
 ```
+
+`packages/sdk` and `packages/config` have no build step. They're internal packages whose `exports` point at TypeScript source, and each game's Vite build bundles what it imports. Turbo's build inputs include `packages/*/src/**`, so changing the SDK invalidates every game's cache.
 
 ### Base path handling
 Each game's `vite.config.ts` is a single line:

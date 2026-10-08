@@ -1,0 +1,19 @@
+{
+  "slug": "snake",
+  "title": "Snake",
+  "tagline": "Eat. Grow. Don't bite yourself.",
+  "description": "The classic, tuned to feel good: smooth gliding movement, juicy eats and a speed ramp that keeps every run tense. Eat pellets to grow and score; hit a wall or yourself and it's over.",
+  "engine": "vanilla",
+  "tags": ["arcade", "classic"],
+  "input": ["keyboard", "touch"],
+  "controls": {
+    "keyboard": "Arrow keys or WASD to turn. Space or Enter to restart.",
+    "touch": "Swipe to turn. Keep your finger down and draw an L to turn twice."
+  },
+  "orientation": "any",
+  "thumbnail": "thumbnail.png",
+  "thumbnailAlt": "A lime-green snake gliding across a dark dotted grid toward a pink pellet",
+  "status": "published",
+  "addedAt": "2026-10-08",
+  "version": "1.0.0"
+}

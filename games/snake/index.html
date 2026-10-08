@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Snake</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="scorebar">
+        <p class="stat">
+          <span class="label">Score</span>
+          <output id="score" class="value">0</output>
+        </p>
+        <p class="stat">
+          <span class="label">Best</span>
+          <output id="best" class="value">0</output>
+        </p>
+      </header>
+
+      <main id="stage" class="stage" data-mode="attract">
+        <canvas id="board" role="img" aria-label="Snake board"></canvas>
+
+        <section id="start" class="overlay" aria-labelledby="start-title">
+          <h1 id="start-title" class="title">Snake</h1>
+          <p class="tagline">Eat. Grow. Don't bite yourself.</p>
+          <button id="play" class="cta" type="button">Play</button>
+          <p class="hint">
+            <span class="keys">Arrow keys / WASD</span><span class="touch">Swipe to turn</span>
+          </p>
+        </section>
+
+        <section id="over" class="overlay" role="status" aria-live="polite" hidden>
+          <p id="over-kicker" class="kicker">Game over</p>
+          <p class="final"><span id="over-score">0</span></p>
+          <p id="over-best" class="best-line">Best 0</p>
+          <button id="again" class="cta" type="button">Play again</button>
+          <p class="hint"><span class="keys">Space / Enter to restart</span><span class="touch">Tap to restart</span></p>
+        </section>
+      </main>
+    </div>
+    <noscript>Snake needs JavaScript to run.</noscript>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
