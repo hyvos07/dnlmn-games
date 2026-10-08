@@ -1,0 +1,93 @@
+:root {
+  --ink: #0c0c10;
+  --paper: #f4f1ea;
+  --muted: #a29e95;
+  --accent: #c6ff3d;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: `hidden` must always win over layout rules. */
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  font:
+    500 16px / 1.4 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  overflow: hidden;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+}
+
+#board {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  background: rgba(12, 12, 16, 0.78);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+}
+
+.best,
+.hint {
+  margin: 0;
+  color: var(--muted);
+}
+
+.cta {
+  padding: 12px 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cta:focus-visible {
+  outline: 3px solid var(--paper);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cta {
+    transition: transform 120ms ease;
+  }
+
+  .cta:active {
+    transform: scale(0.96);
+  }
+}

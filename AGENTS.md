@@ -21,7 +21,7 @@ pnpm install                          # install everything
 pnpm dev                              # whole site with hot reload → http://localhost:4321
 pnpm dev:launcher                     # Astro dev server for the menu only
 pnpm dev:game <slug>                  # Vite dev server → http://localhost:5173/<slug>/
-pnpm new-game <slug> --engine vanilla # scaffold a game (vanilla now; kaplay template lands in Phase 3)
+pnpm new-game <slug> --engine kaplay  # scaffold a game (kaplay is the default; or vanilla)
 pnpm thumbnail <slug>                 # record real gameplay: games/<slug>/thumbnail.png + looping preview.webp
 pnpm check                            # Biome lint+format check, tsc, manifest validation
 pnpm check:fix                        # auto-fix formatting/lint

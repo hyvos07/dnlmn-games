@@ -90,8 +90,6 @@ const titleError = validateTitle(title);
 if (titleError) fail(titleError);
 
 const engine = option('engine') ?? 'kaplay';
-if (engine === 'kaplay')
-  fail('The kaplay template arrives in PLAN Phase 3. Use --engine vanilla for now.');
 if (!ENGINES.includes(engine)) fail(`Unknown engine "${engine}". Allowed: ${ENGINES.join(', ')}.`);
 
 const template = join(ROOT, 'packages', 'templates', engine);

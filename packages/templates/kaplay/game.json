@@ -1,0 +1,18 @@
+{
+  "slug": "__SLUG__",
+  "title": "__TITLE__",
+  "tagline": "A new game. Describe it in one line.",
+  "description": "Replace this with one or two sentences about what the player does.",
+  "engine": "kaplay",
+  "tags": ["experimental"],
+  "input": ["keyboard", "touch"],
+  "controls": {
+    "keyboard": "Arrow keys or A / D to move. Space or Enter to restart.",
+    "touch": "Drag to move. Tap to restart."
+  },
+  "orientation": "any",
+  "thumbnail": "thumbnail.png",
+  "status": "draft",
+  "addedAt": "__DATE__",
+  "version": "0.1.0"
+}

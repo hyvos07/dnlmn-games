@@ -1,0 +1,21 @@
+{
+  "name": "@games/game-__SLUG__",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@games/config": "workspace:*",
+    "@games/sdk": "workspace:*",
+    "kaplay": "3001.0.19"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

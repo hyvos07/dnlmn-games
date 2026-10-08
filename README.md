@@ -13,7 +13,7 @@ pnpm install
 pnpm dev                               # whole site with hot reload → http://localhost:4321
 pnpm dev:launcher                      # menu only
 pnpm dev:game snake                    # one game
-pnpm new-game my-game --engine vanilla # new game (kaplay template: Phase 3)
+pnpm new-game my-game --engine kaplay  # new game (or --engine vanilla)
 pnpm build && pnpm preview             # production-identical local build → http://localhost:4321
 ```
 

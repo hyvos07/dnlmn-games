@@ -7,13 +7,13 @@ The checklist for going from idea to a game live at `games.dnlmn.dev/<slug>/`.
 - **Slug:** short, lowercase, permanent (`snake`, `tile-flip`). Check it's not reserved (ARCHITECTURE §3) or already used.
 - **Engine:**
   - `vanilla` for tiny games (Snake, Pong, 2048). Plain Canvas or DOM.
-  - `kaplay` (default) for anything with sprites, scenes, collisions, or animation.
+  - `kaplay` (default) for anything with sprites, scenes, collisions, or animation. The starter is a small dodger that shows scenes, collisions, keyboard + drag input, a score and a game-over screen. It fills the screen and re-lays out on resize. KAPLAY adds about 70 KB gzipped.
   - Anything else needs an ADR first (see [DECISIONS.md](./DECISIONS.md)).
 
 ## 1. Scaffold
 
 ```bash
-pnpm new-game tile-flip --engine vanilla   # kaplay template arrives in Phase 3
+pnpm new-game tile-flip --engine kaplay    # or --engine vanilla
 ```
 
 This creates `games/tile-flip/` with:
