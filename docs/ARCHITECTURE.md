@@ -37,6 +37,7 @@ games-dnlmn/
 │   │   ├── src/main.ts
 │   │   ├── public/               # static assets copied as-is
 │   │   ├── thumbnail.png         # source thumbnail (launcher optimizes it)
+│   │   ├── preview.webp          # optional looping card clip (ADR-011)
 │   │   ├── CREDITS.md
 │   │   ├── README.md             # game one-pager (from docs/templates)
 │   │   ├── package.json          # name: @games/game-snake
@@ -70,7 +71,7 @@ games-dnlmn/
 | `/404.html` | launcher | Served for unknown paths |
 | `/_astro/*` | launcher | Hashed launcher assets |
 | `/og/*` | launcher | Generated OG images |
-| `/thumbs/*` | launcher | Optimized thumbnails |
+| `/thumbs/*` | launcher | Optimized thumbnails and preview clips |
 | `/tag/<tag>/` | launcher | Pre-filtered grid: the no-JS fallback for the tag filter |
 | `/sitemap.xml` | launcher | |
 | `/<slug>/` | game | Game entry `index.html` |
@@ -100,6 +101,7 @@ Slug format: `^[a-z][a-z0-9-]{1,30}$`. Slugs are permanent once published, becau
   },
   "orientation": "any",                  // "any" | "landscape" | "portrait"
   "thumbnail": "thumbnail.png",          // relative to game folder, 16:10 or 1:1, ≥ 640px wide
+  "preview": "preview.webp",             // optional looping card clip from `pnpm thumbnail` (ADR-011)
   "status": "published",                 // "draft" | "hidden" | "published"
   "addedAt": "2026-10-02",
   "version": "1.0.0",
@@ -182,7 +184,7 @@ The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or g
 ## 7. Launcher
 
 - Astro content collection loads `../../games/*/game.json` with the glob loader and the same Zod schema from `@games/config`. Only `published` games are listed.
-- `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, and a basic OG card per game to `/og/<slug>.png` (plus `/og/home.png`). Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
+- `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, copies a game's preview clip to `/thumbs/<slug>-preview.webp`, and a basic OG card per game to `/og/<slug>.png` (plus `/og/home.png`). Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
 - Theme: dark only. Accent tokens come from `@games/config/theme` (`ACCENT`) and are inlined as CSS variables.
 - Fonts (Bricolage Grotesque 800, Instrument Sans variable, latin subset) are self-hosted, preloaded and use `font-display: optional`, so a late font never shifts layout.
 - The tag filter is a small vanilla script or Astro island. There's no framework runtime on the launcher unless an ADR adds one.
@@ -199,7 +201,7 @@ The page is complete with the critical layer alone. Without JS, the filter falls
 
 Enhancement modules (`apps/launcher/src/scripts/enhance/`):
 - `scene.ts`: one OGL renderer and canvas, seven instanced low-poly meshes (`pieces.ts`), with all motion in the vertex shader. The mood eases per section (hero lively, grid receded, footer pieces form a snake). Pieces are dimmed toward the page colour and fade out behind text, whose boxes are passed in as uniforms. It pauses when the tab is hidden, caps DPR at 2 (1.5 on touch), uses fewer pieces on low-end devices, and drops resolution if frames run long.
-- `motion.ts` (anime.js): the title "power-on" wave and letter bounces, card reveal on scroll, 3D tilt + glare (CSS custom properties), the exit wipe into a game, and FLIP filtering.
+- `motion.ts` (anime.js): the title "power-on" wave and letter bounces, card reveal on scroll, looping gameplay clips faded in over card stills once they near the screen (ADR-011), 3D tilt + glare (CSS custom properties), the exit wipe into a game, and FLIP filtering.
 - `trail.ts`: the footer snake, an SVG on a grid. Each `[data-wall]` text group is one solid box, and it never goes below `[data-trail-floor]` (the fine print). It hunts apples on its own (BFS), follows the cursor while hovered, and only runs while the footer is visible.
 - `dots.ts`: the about page's background, a 2D-canvas dot grid that faintly reacts to the pointer. It only draws while something is moving.
 

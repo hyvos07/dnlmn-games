@@ -102,3 +102,14 @@ A short log of decisions that would be expensive to reverse, so nobody (human or
 - **Decision:** Deploy as a **Worker with static assets only** (`wrangler.jsonc`, `assets.directory: ./dist`, `not_found_handling: "404-page"`, `html_handling: "auto-trailing-slash"`). `pnpm preview` runs `wrangler dev` on port 4321, which serves `dist/` through the same asset engine locally, with no login needed. CI deploys with `wrangler deploy` and creates PR previews with `wrangler versions upload`.
 - **Consequences:** Local preview and Playwright tests exercise real Cloudflare routing. `/api/*` can later become Worker code in the same deployment (ARCHITECTURE §10). `wrangler` (with `workerd`) is a dev dependency, which adds install weight.
 - **Revisit when:** Cloudflare deprecates assets-only Workers, or preview/production behaviour diverges.
+
+## ADR-011: Looping gameplay clips on launcher cards
+- **Status:** Accepted
+- **Date:** 2026-10-08
+- **Context:** Game cards show a still thumbnail. The owner wants them to move, showing real gameplay. The launcher must never import game code (RULES §1), so it can't run the game itself, and a clip must not hurt first paint or LCP.
+- **Decision:** Each game may ship a short **animated WebP** clip of its attract/demo mode, declared as `"preview"` in `game.json`. Animated WebP plays in a plain `<img>`, needs no player JS, and is encoded by `sharp` (already a dependency), so no video encoder like ffmpeg is needed.
+  - `pnpm thumbnail <slug>` records it: it runs the game on Playwright's fake clock and captures exactly one frame per tick (25 fps, 4 s, 640 px square). It crossfades the last 10 frames back into the start so the loop is seamless, and writes `preview.webp`. The still `thumbnail.png` is the clip's first frame, so swapping one for the other is invisible.
+  - The card's critical HTML is unchanged: it still shows the optimised still. The motion layer (ADR-009) fetches the clip only when the card nears the viewport, and fades it in once it has loaded. It's never loaded under `prefers-reduced-motion`, and it's hidden if reduced motion is switched on mid-visit.
+  - Budget: ≤ 300 KB per clip, enforced by `assemble.ts`. That's separate from the 40 KB still budget.
+- **Consequences:** Cards come alive with real footage, and new games get it from the same command. Each clip is a committed binary (~150 KB) that has to be regenerated when the game's look changes. Clips cost bandwidth only for visitors with motion enabled, and only for cards they scroll near. `sharp` is now also a root dev dependency, for the thumbnail script.
+- **Revisit when:** Clips approach the budget, many games make the grid heavy to scroll, or browsers gain a better lightweight looping format (e.g. AVIF sequences with wide support).

@@ -1,7 +1,7 @@
 /**
  * Enhancement layer (ADR-009), loaded after first paint and never under reduced motion.
- * Title power-on wave, letter bounces, card reveal on scroll, 3D tilt + glare,
- * card → game exit wipe, FLIP filtering, and the footer snake.
+ * Title power-on wave, letter bounces, card reveal on scroll, live gameplay clips on
+ * cards, 3D tilt + glare, card → game exit wipe, FLIP filtering, and the footer snake.
  */
 import { animate, cleanInlineStyles, type JSAnimation, random, set, stagger } from 'animejs';
 import type { FilterAnimator } from '../filter.ts';
@@ -16,6 +16,7 @@ const fine = window.matchMedia('(pointer: fine)').matches;
 export function start({ setFilterAnimator }: Hooks): void {
   titleWave();
   revealCards();
+  livePreviews();
   if (fine) tiltCards();
   exitTransitions();
   setFilterAnimator(flipFilter);
@@ -85,6 +86,35 @@ function revealCards(): void {
     { rootMargin: '0px 0px -12% 0px' },
   );
   for (const item of below) observer.observe(item);
+}
+
+/**
+ * Cards with a `data-preview` clip (ADR-011) get it laid over the still once they come
+ * near the screen. The still is the clip's first frame, so the fade-in is seamless.
+ * The clip is only fetched here, so it never competes with first paint.
+ */
+function livePreviews(): void {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        const media = entry.target as HTMLElement;
+        const clip = new Image();
+        clip.className = 'card-preview';
+        clip.alt = '';
+        clip.decoding = 'async';
+        clip.addEventListener('load', () => clip.classList.add('is-ready'), { once: true });
+        clip.addEventListener('error', () => clip.remove(), { once: true });
+        clip.src = media.dataset.preview as string;
+        media.querySelector('picture')?.after(clip);
+      }
+    },
+    { rootMargin: '200px 0px' },
+  );
+  for (const media of document.querySelectorAll<HTMLElement>('[data-preview]')) {
+    observer.observe(media);
+  }
 }
 
 /** 3D tilt + glare from the pointer, via CSS custom properties (no WebGL). */

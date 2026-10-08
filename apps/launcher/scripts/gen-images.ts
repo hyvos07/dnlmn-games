@@ -1,10 +1,11 @@
 /**
  * Prebuild step for the launcher: optimise every game's thumbnail into
- * public/thumbs/<slug>-<size>.{avif,webp} and render a basic Open Graph card into
+ * public/thumbs/<slug>-<size>.{avif,webp}, copy its looping preview clip (if any) to
+ * public/thumbs/<slug>-preview.webp, and render a basic Open Graph card into
  * public/og/<slug>.png (plus og/home.png). Both folders are generated and gitignored.
  * Outputs newer than their sources are skipped, so `astro dev` restarts stay fast.
  */
-import { existsSync, mkdirSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { getAccent, SURFACES } from '@games/config/theme';
 import sharp, { type OverlayOptions } from 'sharp';
@@ -85,6 +86,15 @@ for (const { slug, dir, manifest } of games) {
     }
     if (!fresh(webp, [source])) {
       await base.clone().webp({ quality: 78 }).toFile(webp);
+      written++;
+    }
+  }
+  if (manifest.preview) {
+    // Already encoded at its final size by `pnpm thumbnail`; just copy it.
+    const clip = join(dir, manifest.preview);
+    const out = join(thumbsDir, `${slug}-preview.webp`);
+    if (!fresh(out, [clip])) {
+      copyFileSync(clip, out);
       written++;
     }
   }

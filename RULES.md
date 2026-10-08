@@ -9,7 +9,7 @@ Non-negotiable rules for this repo. They apply to humans and AI agents equally. 
 ## 1. Isolation
 
 - **MUST**: A game only imports from its own folder and from `packages/*`. No imports from another game, ever.
-- **MUST**: The launcher never imports game code. It only reads `game.json` and thumbnails.
+- **MUST**: The launcher never imports game code. It only reads `game.json`, thumbnails and preview clips.
 - **MUST**: Code shared by 2+ games moves into `packages/`, and only after the second game actually needs it. Don't abstract ahead of time.
 - **MUST**: Never use global state that leaks between games: no `localStorage` outside the SDK, no cookies, no service worker scoped to `/` from a game.
 
@@ -36,6 +36,7 @@ Non-negotiable rules for this repo. They apply to humans and AI agents equally. 
 | Launcher enhancement JS: WebGL scene + anime.js, loaded after first paint/idle (gzipped) | ≤ 200 KB |
 | Launcher Lighthouse mobile Performance | ≥ 90 |
 | Thumbnail (each, optimized) | ≤ 40 KB |
+| Card preview clip (each, animated WebP, loaded only by the enhancement layer, [ADR-011](./docs/DECISIONS.md#adr-011-looping-gameplay-clips-on-launcher-cards)) | ≤ 300 KB |
 | Standard game initial download (gzipped) | ≤ 1.5 MB without a loader. Up to 5 MB with a progress loader |
 | Any single file | < 25 MiB (hosting limit) |
 | Frame rate | 60 fps target on a mid-range phone |

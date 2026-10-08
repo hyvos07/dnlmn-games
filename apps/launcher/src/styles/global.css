@@ -559,6 +559,26 @@ html.js .toggle[data-js-only] {
   transition: transform 600ms var(--ease-out);
 }
 
+/* Looping gameplay clip laid over the still by the motion layer (ADR-011). */
+.card-media .card-preview {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition:
+    opacity 500ms ease,
+    transform 600ms var(--ease-out);
+}
+
+.card-media .card-preview.is-ready {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-media .card-preview {
+    display: none;
+  }
+}
+
 .card:hover .card-media img {
   transform: scale(1.04);
 }
@@ -1133,6 +1153,16 @@ html[data-touch] .ghost {
   text-decoration-thickness: 3px;
 }
 
+/* The credit link stays the same weight as the text around it; hover only recolours
+   the underline (no bolder text, no thicker line). */
+.fineprint a {
+  font-weight: inherit;
+}
+
+.fineprint a:hover {
+  text-decoration-thickness: 1.5px;
+}
+
 .fineprint {
   position: relative;
   display: flex;
@@ -1153,16 +1183,6 @@ html[data-touch] .ghost {
   .footer-big {
     grid-column: 1 / -1;
   }
-/* The credit link stays the same weight as the text around it; hover only recolours
-   the underline (no bolder text, no thicker line). */
-.fineprint a {
-  font-weight: inherit;
-}
-
-.fineprint a:hover {
-  text-decoration-thickness: 1.5px;
-}
-
 }
 
 /* ── Prose pages (about, 404) ─────────────────────────────────────────── */

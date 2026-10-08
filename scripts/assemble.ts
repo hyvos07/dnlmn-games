@@ -19,6 +19,8 @@ import { gzipSize, initialFiles, kb, totalGzip } from './lib/sizes.ts';
 export const LAUNCHER_CRITICAL_KB = 75;
 export const LAUNCHER_ENHANCEMENT_KB = 200;
 export const THUMBNAIL_KB = 40;
+/** Looping card clips (ADR-011), loaded only by the enhancement layer. */
+export const PREVIEW_KB = 300;
 export const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
 const root = join(import.meta.dirname, '..');
@@ -151,10 +153,11 @@ const thumbsDir = join(out, 'thumbs');
 if (existsSync(thumbsDir)) {
   for (const file of walk(thumbsDir)) {
     const size = statSync(file).size;
-    if (size > THUMBNAIL_KB * 1024) {
-      errors.push(
-        `/${toPosix(relative(out, file))}: ${kb(size)} exceeds thumbnail budget ${THUMBNAIL_KB} KB`,
-      );
+    const path = `/${toPosix(relative(out, file))}`;
+    if (file.endsWith('-preview.webp')) {
+      check(`preview clip ${path}`, size, PREVIEW_KB * 1024);
+    } else if (size > THUMBNAIL_KB * 1024) {
+      errors.push(`${path}: ${kb(size)} exceeds thumbnail budget ${THUMBNAIL_KB} KB`);
     }
   }
 }

@@ -21,7 +21,8 @@ const icons: Record<string, string> = {
 
 <li class="card-item" data-tags={game.tags.join(' ')} data-touch={game.touch ? '' : undefined}>
   <a class="card" href={game.href} data-game-link>
-    <div class="card-media">
+    <!-- data-preview: the motion layer fades a looping gameplay clip in over the still. -->
+    <div class="card-media" data-preview={game.previewSrc}>
       <picture>
         <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
         <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />

@@ -46,7 +46,8 @@ While you build, keep these in mind:
 ## 3. Fill in the metadata
 
 - `game.json`: title, tagline (≤ 60 chars), description, tags (from the vocabulary in RULES §6), input, controls, orientation.
-- `thumbnail.png`: at least 640px wide, 16:10 or 1:1, shows actual gameplay, not just the title. The launcher optimizes it. `pnpm thumbnail <slug> [--wait <ms>] [--selector <css>]` builds the game, lets it run in a headless browser, hides the HUD and overlays, and screenshots the canvas (or a `[data-thumbnail]` element). Give your title screen an attract/demo mode so there's real gameplay to capture.
+- `thumbnail.png`: at least 640px wide, 16:10 or 1:1, shows actual gameplay, not just the title. The launcher optimizes it. `pnpm thumbnail <slug> [--wait <ms>] [--selector <css>] [--still]` builds the game, runs it in a headless browser on a fake clock, hides the HUD and overlays, and captures the canvas (or a `[data-thumbnail]` element). Give your title screen an attract/demo mode so there's real gameplay to capture.
+- `preview.webp` (optional, recommended): the same command also records a seamless 4-second loop that plays on the game's card ([ADR-011](./DECISIONS.md#adr-011-looping-gameplay-clips-on-launcher-cards)). Add `"preview": "preview.webp"` to `game.json` to use it, and keep it ≤ 300 KB. Pass `--still` to write only the thumbnail.
 - `CREDITS.md`: every third-party asset with source URL + license. Write "All assets original" if that's true.
 - `README.md`: the one-pager (concept, controls, scoring, ideas for later).
 

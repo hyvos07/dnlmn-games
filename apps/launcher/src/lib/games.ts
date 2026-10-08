@@ -7,6 +7,8 @@ export interface Game extends GameManifest {
   href: string;
   alt: string;
   touch: boolean;
+  /** URL of the looping card clip (ADR-011), if the game ships one. */
+  previewSrc?: string;
 }
 
 /** Published games, newest first. Hidden and draft games are never listed. */
@@ -23,6 +25,7 @@ export async function getGames(): Promise<Game[]> {
       href: `/${game.slug}/`,
       alt: thumbnailAlt(game),
       touch: game.input.includes('touch'),
+      previewSrc: game.preview ? `/thumbs/${game.slug}-preview.webp` : undefined,
     }))
     .reverse();
 }

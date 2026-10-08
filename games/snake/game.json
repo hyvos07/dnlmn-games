@@ -13,6 +13,7 @@
   "orientation": "any",
   "thumbnail": "thumbnail.png",
   "thumbnailAlt": "A lime-green snake gliding across a dark dotted grid toward a pink pellet",
+  "preview": "preview.webp",
   "status": "published",
   "addedAt": "2026-10-08",
   "version": "1.0.0"

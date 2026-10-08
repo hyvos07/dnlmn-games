@@ -186,6 +186,36 @@ test.describe('motion layer', () => {
     await expect(page.locator('#scene')).toHaveClass(/is-live/, { timeout: 8000 });
     await expect(page.locator('canvas')).toHaveCount(1);
   });
+
+  test('cards with a preview clip fade it in over the still (ADR-011)', async ({ page }) => {
+    await page.goto('/');
+    const media = page.locator('.card-media[data-preview]').first();
+    test.skip((await media.count()) === 0, 'no published game ships a preview clip');
+    await media.scrollIntoViewIfNeeded();
+    const clip = media.locator('img.card-preview');
+    await expect(clip).toHaveClass(/is-ready/, { timeout: 8000 });
+    expect(await clip.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    // The still stays underneath as the first frame and the no-JS fallback.
+    await expect(media.locator('picture img')).toBeVisible();
+  });
+
+  test('reduced motion never downloads preview clips', async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ reducedMotion: 'reduce', baseURL });
+    const page = await context.newPage();
+    const clips: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('-preview.webp')) clips.push(request.url());
+    });
+    try {
+      await page.goto('/');
+      await page.locator('#games').scrollIntoViewIfNeeded();
+      await page.waitForTimeout(4000);
+      expect(clips).toEqual([]);
+      await expect(page.locator('.card-preview')).toHaveCount(0);
+    } finally {
+      await context.close();
+    }
+  });
 });
 
 test('keyboard: Tab reaches the first game card with a visible focus outline', async ({

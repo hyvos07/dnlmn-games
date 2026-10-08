@@ -72,6 +72,14 @@ export const manifestSchema = z.strictObject({
     .default('thumbnail.png'),
   /** Alt text for the thumbnail. Falls back to a generated description. */
   thumbnailAlt: z.string().min(1).max(200).optional(),
+  /**
+   * Optional looping gameplay clip (animated WebP, written by `pnpm thumbnail`) that the
+   * launcher card plays as an enhancement (ADR-011). Same file-name rule as `thumbnail`.
+   */
+  preview: z
+    .string()
+    .regex(/^[\w-]+\.webp$/i, 'preview must be a plain .webp file name')
+    .optional(),
   status: z.enum(STATUSES),
   addedAt: z.iso.date(),
   version: z.string().optional(),

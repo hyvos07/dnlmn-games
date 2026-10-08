@@ -77,7 +77,8 @@ export function loadGames(gamesDir: string, options: LoadOptions = {}): LoadResu
     }
 
     if (manifest.status !== 'draft') {
-      for (const required of [...REQUIRED_FILES, manifest.thumbnail]) {
+      const media = [manifest.thumbnail, ...(manifest.preview ? [manifest.preview] : [])];
+      for (const required of [...REQUIRED_FILES, ...media]) {
         if (!existsSync(join(dir, required))) {
           errors.push(`games/${folder}: missing ${required} (required for non-draft games)`);
         }
