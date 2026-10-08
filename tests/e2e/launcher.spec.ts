@@ -83,7 +83,7 @@ test.describe('tag filter', () => {
     }
     expect(shown).toBeGreaterThan(0);
     expect(hidden).toBe(items.length - shown);
-    // "Next up" placeholders never show while a filter is active.
+    // The coming-soon teaser never shows while a filter is active.
     const ghosts = await page.locator('.card-item.ghost').all();
     expect(ghosts.length).toBeGreaterThan(0);
     for (const ghost of ghosts) await expect(ghost).toBeHidden();

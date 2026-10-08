@@ -6,33 +6,34 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="footer" id="footer" data-section="footer">
-  <!-- A grid-snapped snake: static here, chases the cursor once motion loads. -->
-  <svg
-    class="trail"
-    data-trail
-    viewBox="0 0 440 176"
-    preserveAspectRatio="xMaxYMax meet"
-    aria-hidden="true">
+  <!--
+    A grid-snapped snake. Static here, tucked in the empty strip above the text; once
+    motion loads it covers the footer, weaves around the text and hunts apples. Each
+    [data-wall] group is one solid block to it: the smallest box around all its text.
+    It never goes below [data-trail-floor], the fine print's top rule.
+  -->
+  <svg class="trail" data-trail viewBox="0 0 176 44" aria-hidden="true">
+    <circle class="trail-apple" cx="11" cy="11" r="6.6"></circle>
     <path
-      d="M418 154H330V132H286V110H242V88H198"
+      d="M165 33H99V11H33"
       fill="none"
       stroke="currentColor"
       stroke-width="14"
       stroke-linecap="round"
       stroke-linejoin="round"
       opacity="0.9"></path>
-    <circle cx="194" cy="85" r="2.6" fill="var(--bg)"></circle>
-    <circle cx="194" cy="92" r="2.6" fill="var(--bg)"></circle>
+    <circle cx="30" cy="6.6" r="2.6" fill="var(--bg)"></circle>
+    <circle cx="30" cy="15.4" r="2.6" fill="var(--bg)"></circle>
   </svg>
   <div class="footer-grid wrap">
-    <p class="footer-big">Keep<br /><span>playing.</span></p>
-    <div>
+    <p class="footer-big" data-wall>Keep<br /><span>playing.</span></p>
+    <div data-wall>
       <h2>Latest</h2>
       <ul>
         {latest.map((game) => <li><a href={game.href} data-game-link>{game.title}</a></li>)}
       </ul>
     </div>
-    <div>
+    <div data-wall>
       <h2>Site</h2>
       <ul>
         <li><a href="/#games">All games</a></li>
@@ -41,7 +42,7 @@ const year = new Date().getFullYear();
       </ul>
     </div>
   </div>
-  <div class="fineprint wrap">
+  <div class="fineprint wrap" data-trail-floor>
     <span>© {year} dnlmn · No cookies. No trackers. Just games.</span>
     <span>Built with Astro, OGL and anime.js</span>
   </div>

@@ -127,6 +127,7 @@ html.js [data-js-only] {
   );
   background-size: 28px 28px;
   mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  transition: opacity 900ms ease;
 }
 
 .scene canvas {
@@ -138,8 +139,14 @@ html.js [data-js-only] {
   transition: opacity 900ms ease;
 }
 
-.scene.is-live canvas {
+.scene.is-live canvas,
+.scene.is-dots canvas {
   opacity: 1;
+}
+
+/* The live dot grid replaces the static one. */
+.scene.is-dots::before {
+  opacity: 0;
 }
 
 .page {
@@ -227,16 +234,16 @@ html.js [data-js-only] {
   color: var(--muted);
 }
 
-@media (max-width: 560px) {
+@media (max-width: 380px) {
   .hero-meta span:nth-child(2) {
     display: none;
   }
 }
 
 .title {
-  align-self: end;
+  align-self: center;
   margin: 0;
-  font: 800 clamp(4.6rem, 18.5vw, 17.5rem) / 0.8 var(--display);
+  font: 800 clamp(3.8rem, 13vw, 12rem) / 0.8 var(--display);
   letter-spacing: -0.055em;
 }
 
@@ -659,27 +666,337 @@ html.js .toggle[data-js-only] {
   height: 20px;
 }
 
-.ghost-card {
-  display: grid;
-  place-content: center;
-  gap: 10px;
-  min-height: 100%;
-  aspect-ratio: 4 / 5;
-  padding: 28px;
-  border: 1.5px dashed var(--line);
+/* Coming-soon teaser: a still frame of a typing game that plays when motion is allowed. */
+.soon {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1.5px dashed color-mix(in srgb, var(--fg) 22%, transparent);
   border-radius: var(--radius);
-  text-align: center;
+  background: color-mix(in srgb, var(--raised) 55%, transparent);
+}
+
+.soon-media {
+  position: relative;
+  margin: 10px 10px 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: calc(var(--radius) - 8px);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--fg) 8%, transparent) 1px, transparent 1.5px) 0
+    0 / 22px 22px,
+    var(--bg);
+  container-type: inline-size;
+}
+
+.soon-typing {
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-family: var(--mono);
+}
+
+.soon-stat {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font:
+    600 13px / 1 ui-monospace,
+    "Cascadia Mono",
+    "SF Mono",
+    Menlo,
+    Consolas,
+    monospace;
   color: var(--muted);
 }
 
-.ghost-card strong {
-  font: 800 1.6rem / 1 var(--display);
-  letter-spacing: -0.03em;
+.soon-word {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  font-size: 5cqi;
+  color: color-mix(in srgb, var(--fg) 30%, transparent);
+  /* Still frame: spread down the board by the same offset the animation uses. */
+  transform: translateY(calc(10cqi - var(--d) * 9cqi));
+}
+
+.soon-target {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  font-size: 8cqi;
+  font-weight: 700;
+  white-space: nowrap;
   color: var(--fg);
+  transform: translate(-50%, 34cqi);
 }
 
-.ghost-card .kicker {
-  color: var(--muted);
+.soon-target::after,
+.soon-typed::before {
+  content: attr(data-word);
+  display: inline-block;
+  width: 3ch;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.soon-target::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--accent);
+}
+
+.soon-input {
+  position: absolute;
+  right: 9%;
+  bottom: 8%;
+  left: 9%;
+  display: flex;
+  align-items: center;
+  gap: 0.6ch;
+  padding: 2.6cqi 4cqi;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--raised) 90%, transparent);
+  font-size: 5.4cqi;
+}
+
+.soon-prompt {
+  color: var(--accent);
+}
+
+.soon-typed::after {
+  content: "";
+  display: inline-block;
+  width: 0.12em;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -0.15em;
+  background: var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .soon-word {
+    animation: soon-fall 9s linear calc(var(--d) * 1s) infinite;
+  }
+  .soon-target {
+    animation: soon-target 3.4s ease-in infinite;
+  }
+  .soon-target::after {
+    animation: soon-type 3.4s infinite;
+  }
+  .soon-typed::before {
+    animation: soon-input 3.4s infinite;
+  }
+  .soon-typed::after {
+    animation: soon-blink 1s steps(1) infinite;
+  }
+}
+
+@keyframes soon-fall {
+  from {
+    transform: translateY(-8cqi);
+  }
+  to {
+    transform: translateY(104cqi);
+  }
+}
+
+@keyframes soon-target {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 12cqi);
+  }
+  6% {
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, 40cqi) scale(1);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  74%,
+  100% {
+    transform: translate(-50%, 40cqi) scale(1.7);
+    opacity: 0;
+  }
+}
+
+@keyframes soon-type {
+  0% {
+    width: 0;
+    animation-timing-function: steps(5, end);
+  }
+  58%,
+  100% {
+    width: 5ch;
+  }
+}
+
+@keyframes soon-input {
+  0% {
+    width: 0;
+    animation-timing-function: steps(5, end);
+  }
+  58%,
+  66% {
+    width: 5ch;
+  }
+  67%,
+  100% {
+    width: 0;
+  }
+}
+
+@keyframes soon-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 2048 preview. Sizes are in cqi (the media square's width) so it scales with the card. */
+.m-board {
+  position: absolute;
+  top: 14cqi;
+  left: 10cqi;
+  display: grid;
+  grid-template-columns: repeat(4, 17cqi);
+  grid-auto-rows: 17cqi;
+  gap: 2.4cqi;
+  padding: 2.4cqi;
+  border-radius: 4cqi;
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+
+.m-cell {
+  border-radius: 2.4cqi;
+  background: color-mix(in srgb, var(--fg) 5%, transparent);
+}
+
+.m-tile {
+  position: absolute;
+  top: calc(2.4cqi + var(--r) * 19.4cqi);
+  left: calc(2.4cqi + var(--c) * 19.4cqi);
+  display: grid;
+  place-items: center;
+  width: 17cqi;
+  height: 17cqi;
+  border-radius: 2.4cqi;
+  background: color-mix(in srgb, var(--accent) calc(var(--k) * 88%), var(--raised));
+  color: var(--fg);
+  font: 800 var(--fs) / 1 var(--display);
+  letter-spacing: -0.03em;
+}
+
+.m-tile.is-hot {
+  color: var(--on-accent);
+}
+
+/* Still frame = after the merge. */
+.m-base,
+.m-move {
+  opacity: 0;
+}
+
+.m-merged {
+  background: var(--accent);
+  box-shadow: 0 0 7cqi -1cqi color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-base {
+    animation: m-base 4s infinite;
+  }
+  .m-move {
+    animation: m-move 4s infinite;
+  }
+  .m-merged {
+    animation: m-merged 4s infinite;
+  }
+  .m-spawn {
+    animation: m-spawn 4s infinite;
+  }
+}
+
+@keyframes m-base {
+  0%,
+  41% {
+    opacity: 1;
+  }
+  42%,
+  86% {
+    opacity: 0;
+  }
+  96%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes m-move {
+  0%,
+  28% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1);
+  }
+  41% {
+    opacity: 1;
+    transform: translateX(-58.2cqi);
+  }
+  42%,
+  86% {
+    opacity: 0;
+    transform: none;
+  }
+  96%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes m-merged {
+  0%,
+  41% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  42% {
+    opacity: 1;
+    transform: scale(0.7);
+    animation-timing-function: cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  52%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes m-spawn {
+  0%,
+  54% {
+    opacity: 0;
+    transform: scale(0);
+    animation-timing-function: cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  62%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.soon .card-title {
+  display: block;
 }
 
 html[data-tag] .ghost,
@@ -716,20 +1033,59 @@ html[data-touch] .ghost {
 
 .trail {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 6px;
+  right: var(--gutter);
+  width: 132px;
+  height: 33px;
   pointer-events: none;
   color: var(--accent);
 }
 
-.footer-grid,
-.fineprint {
-  /* A soft halo in the page colour keeps text readable when the snake slides under it. */
-  text-shadow:
-    0 0 3px var(--bg),
-    0 0 10px var(--bg),
-    0 0 18px var(--bg);
+/* Live: covers the footer from the top-left corner; trail.ts sets the exact size. */
+.trail.is-live {
+  top: 0;
+  right: auto;
+  left: 0;
+}
+
+.trail-apple {
+  fill: var(--secondary);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.trail-apple.is-new {
+  animation:
+    trail-apple-in 420ms var(--ease-out),
+    trail-apple-pulse 1.4s ease-in-out 420ms infinite;
+}
+
+.trail-pop {
+  fill: none;
+  stroke: var(--secondary);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: trail-pop 480ms ease-out forwards;
+}
+
+@keyframes trail-apple-in {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes trail-apple-pulse {
+  50% {
+    transform: scale(0.82);
+  }
+}
+
+@keyframes trail-pop {
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
 }
 
 .footer-grid {

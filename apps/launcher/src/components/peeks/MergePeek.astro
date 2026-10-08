@@ -1,0 +1,48 @@
+---
+// 2048 preview: a nearly finished board. A swipe left slides one 1024 into the other,
+// they merge into a glowing 2048, and a new 2 drops in. The still frame (reduced motion)
+// is the board after the merge.
+interface Tile {
+  value: number;
+  c: number;
+  r: number;
+  role?: 'base' | 'move' | 'merged' | 'spawn';
+}
+const tiles: Tile[] = [
+  { value: 2, c: 0, r: 0 },
+  { value: 4, c: 1, r: 0 },
+  { value: 8, c: 2, r: 0 },
+  { value: 16, c: 0, r: 1 },
+  { value: 32, c: 1, r: 1 },
+  { value: 64, c: 0, r: 2 },
+  { value: 128, c: 1, r: 2 },
+  { value: 256, c: 2, r: 2 },
+  { value: 512, c: 3, r: 2 },
+  { value: 1024, c: 0, r: 3, role: 'base' },
+  { value: 1024, c: 3, r: 3, role: 'move' },
+  { value: 2048, c: 0, r: 3, role: 'merged' },
+  { value: 2, c: 2, r: 1, role: 'spawn' },
+];
+// Tiles warm toward the accent as they grow; big ones switch to dark text.
+const style = (t: Tile) => {
+  const k = Math.log2(t.value) / 11;
+  const digits = String(t.value).length;
+  const size = digits <= 2 ? 8 : digits === 3 ? 6.4 : 5;
+  return `--c:${t.c};--r:${t.r};--k:${k.toFixed(3)};--fs:${size}cqi`;
+};
+---
+
+<span class="soon-stat">best 2048</span>
+<div class="m-board">
+  {Array.from({ length: 16 }, () => <span class="m-cell"></span>)}
+  {
+    tiles.map((t) => (
+      <span
+        class:list={['m-tile', t.role && `m-${t.role}`, Math.log2(t.value) >= 7 && 'is-hot']}
+        style={style(t)}
+      >
+        {t.value}
+      </span>
+    ))
+  }
+</div>

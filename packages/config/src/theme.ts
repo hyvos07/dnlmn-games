@@ -1,8 +1,7 @@
 /**
  * Shared colour tokens for the launcher and games.
  *
- * To try a different accent, change `ACCENT` below and rebuild (or run
- * `pnpm dev:launcher` and append `?accent=<name>` to the URL to compare live).
+ * To try a different accent, change `ACCENT` below. `pnpm dev` picks it up on reload.
  * Every preset is unit-tested to pass WCAG AA in both the dark and light themes.
  */
 export const ACCENT: AccentName = 'lime';

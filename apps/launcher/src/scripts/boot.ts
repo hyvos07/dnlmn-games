@@ -1,7 +1,8 @@
 /**
  * Critical-path launcher script (ADR-009): the page must be complete with only this.
  * It handles the tag filter and URL sync, then schedules the motion layer (anime.js +
- * the WebGL scene) via dynamic import after load + idle, unless reduced motion is set.
+ * the WebGL scene, or the about page's dot grid) via dynamic import after load + idle,
+ * unless reduced motion is set.
  */
 import { applyFilter, type FilterState, readUrlState, setFilterAnimator } from './filter.ts';
 
@@ -61,6 +62,8 @@ function loadMotion(): void {
   if (scene && 'WebGL2RenderingContext' in window) {
     void import('./enhance/scene.ts').then((module) => module.start(scene));
   }
+  const dots = document.querySelector<HTMLElement>('#scene[data-dots]');
+  if (dots) void import('./enhance/dots.ts').then((module) => module.start(dots));
 }
 
 const idle = (fn: () => void) =>
@@ -79,5 +82,3 @@ window.addEventListener('pageshow', (event) => {
     link.style.removeProperty('transform');
   }
 });
-
-if (import.meta.env.DEV) void import('./dev-accent.ts');

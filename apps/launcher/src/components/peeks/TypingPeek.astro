@@ -1,0 +1,21 @@
+---
+// Typing game preview: words drift down the board while the highlighted one gets typed
+// out and pops.
+const words = [
+  { text: 'arcade', x: 10, delay: 0 },
+  { text: 'pixel', x: 72, delay: -2.6 },
+  { text: 'streak', x: 22, delay: -5.2 },
+  { text: 'keys', x: 70, delay: -6.4 },
+];
+---
+
+<span class="soon-stat">87 wpm</span>
+{
+  words.map((w) => (
+    <span class="soon-word" style={`--x:${w.x}%;--d:${w.delay}`}>
+      {w.text}
+    </span>
+  ))
+}
+<span class="soon-target" data-word="combo">combo</span>
+<span class="soon-input"><span class="soon-prompt">›</span><span class="soon-typed" data-word="combo"></span></span>

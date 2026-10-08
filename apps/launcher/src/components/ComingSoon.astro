@@ -1,0 +1,26 @@
+---
+// A teaser card for an upcoming game. The preview (the slot) is CSS-only and plays a
+// short loop; under reduced motion it's a still frame. It's decoration, not a game, so
+// it's hidden from assistive tech and from any active filter (the `.ghost` class).
+interface Props {
+  title: string;
+  tagline: string;
+  /** Picks the preview's styles: `.soon-<kind>`. */
+  kind: string;
+}
+const { title, tagline, kind } = Astro.props;
+---
+
+<li class="card-item ghost" aria-hidden="true">
+  <div class="soon">
+    <div class={`soon-media soon-${kind}`}>
+      <span class="card-no">Soon</span>
+      <slot />
+    </div>
+    <div class="card-body">
+      <p class="kicker">Coming soon</p>
+      <strong class="card-title">{title}</strong>
+      <p class="card-tagline">{tagline}</p>
+    </div>
+  </div>
+</li>

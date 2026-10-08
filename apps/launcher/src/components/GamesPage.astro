@@ -1,8 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getGames, label, tagCounts } from '../lib/games.ts';
+import ComingSoon from './ComingSoon.astro';
 import GameCard from './GameCard.astro';
 import Hero from './Hero.astro';
+import MergePeek from './peeks/MergePeek.astro';
+import TypingPeek from './peeks/TypingPeek.astro';
 import TagFilter from './TagFilter.astro';
 
 interface Props {
@@ -29,11 +32,6 @@ const css = [
   `${on.join(',')}{background:var(--fg);border-color:var(--fg);color:var(--bg)}`,
   `${on.map((s) => `${s} .chip-n`).join(',')}{background:color-mix(in srgb,var(--bg) 18%,transparent)}`,
 ].join('');
-
-const upNext = [
-  { kicker: 'Next up', title: 'An action game', note: 'Built with KAPLAY' },
-  { kicker: 'After that', title: 'A puzzle', note: 'Touch-first' },
-];
 ---
 
 <Base
@@ -55,17 +53,12 @@ const upNext = [
     <TagFilter tags={tags} total={total} active={tag} />
     <ol class="grid" data-grid>
       {games.map((game) => <GameCard game={game} />)}
-      {
-        upNext.map((item) => (
-          <li class="card-item ghost" aria-hidden="true">
-            <div class="ghost-card">
-              <p class="kicker">{item.kicker}</p>
-              <strong>{item.title}</strong>
-              <span>{item.note}</span>
-            </div>
-          </li>
-        ))
-      }
+      <ComingSoon kind="typing" title="A typing game" tagline="Words fall. Type them before they land.">
+        <TypingPeek />
+      </ComingSoon>
+      <ComingSoon kind="merge" title="2048" tagline="Slide, merge, reach 2048. Made for thumbs.">
+        <MergePeek />
+      </ComingSoon>
     </ol>
     <p class="empty" data-empty hidden>
       No games match that filter yet. <a href="/#games" data-tag="">Show all games</a>

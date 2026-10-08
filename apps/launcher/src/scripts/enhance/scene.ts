@@ -3,7 +3,9 @@
  * the whole page. Floating low-poly game pieces drift, spin, scatter from the cursor and
  * parallax with scroll. All motion runs in the vertex shader; the CPU only eases a few
  * uniforms per frame. The mood shifts per section:
- *   hero: lively and accent-heavy · grid: dim, slow, receded · footer: pieces form a snake
+ *   hero: lively but dimmed · grid: dimmer, slow, receded · footer: pieces form a snake
+ * The pieces stay in the background: they're darkened toward the page colour, and they
+ * fade almost out wherever they pass behind text (the text's boxes go in as uniforms).
  */
 import { Camera, Geometry, Mesh, Program, Renderer, Transform } from 'ogl';
 import { pieceKinds } from './pieces.ts';
@@ -84,7 +86,20 @@ uniform vec3 uC3;
 uniform vec3 uBg;
 uniform float uOpacity;
 uniform vec4 uMood;
+uniform vec4 uRects[MAX_RECTS]; // text boxes in framebuffer pixels: min xy, max xy
+uniform float uFeather;
 out vec4 fragColor;
+
+// 0 inside any text box, easing to 1 at uFeather pixels outside it.
+float clearOfText() {
+  float clear = 1.0;
+  for (int i = 0; i < MAX_RECTS; i++) {
+    vec4 r = uRects[i];
+    vec2 o = max(r.xy - gl_FragCoord.xy, gl_FragCoord.xy - r.zw);
+    clear = min(clear, smoothstep(0.0, uFeather, length(max(o, 0.0))));
+  }
+  return clear;
+}
 
 void main() {
   vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
@@ -95,12 +110,35 @@ void main() {
   // In the footer the pieces line up as one accent-coloured snake.
   base = mix(base, uC0, uMood.y * 0.85);
   vec3 color = base * (0.32 + 0.78 * diffuse) + rim * 0.12;
-  color = mix(color, uBg, vFog * 0.9);
-  fragColor = vec4(color, uOpacity * (1.0 - vFog * 0.5));
+  // Background, not foreground: knock everything back toward the page colour.
+  color = mix(color, uBg, DIM + vFog * (0.9 - DIM));
+  float text = mix(0.1, 1.0, clearOfText());
+  fragColor = vec4(color, uOpacity * (1.0 - vFog * 0.5) * text);
 }`;
 
 const CAMERA_Z = 22;
 const FOV = 35;
+/**
+ * How far piece colours are pulled toward the page colour: 0 = full colour, 1 = invisible.
+ * Lower it to brighten the background pieces.
+ */
+const DIM = 0.45;
+/** Text boxes the pieces fade behind; only the ones on screen are sent, up to MAX_RECTS. */
+const MAX_RECTS = 16;
+const TEXT_SELECTOR = [
+  '.mark',
+  '.nav',
+  '.hero-meta > span',
+  '.title .line',
+  '.lede',
+  '.ctas',
+  '.section-head > *',
+  '.chips',
+  '.toggle',
+  '.footer-big',
+  '.footer-grid > div',
+  '.fineprint > span',
+].join(',');
 
 const hexToRgb = (hex: string): [number, number, number] => {
   const h = hex.trim().replace('#', '');
@@ -171,21 +209,18 @@ export function start(container: HTMLElement): void {
     uC3: { value: color('--muted') },
     uBg: { value: color('--bg') },
     uOpacity: { value: 1 },
+    // A plain array: OGL only resolves uniform arrays (uRects[0]) from Array values.
+    uRects: { value: new Array<number>(MAX_RECTS * 4).fill(-1e5) },
+    uFeather: { value: 56 },
   };
-  const refreshColors = () => {
-    const s = getComputedStyle(document.documentElement);
-    const read = (name: string) => hexToRgb(s.getPropertyValue(name) || '#ffffff');
-    uniforms.uC0.value = read('--accent');
-    uniforms.uC1.value = read('--secondary');
-    uniforms.uC2.value = read('--fg');
-    uniforms.uC3.value = read('--muted');
-    uniforms.uBg.value = read('--bg');
-  };
-  window.addEventListener('accentchange', refreshColors);
-
   const program = new Program(gl, {
     vertex,
-    fragment,
+    fragment: fragment.replace(
+      '#version 300 es',
+      `#version 300 es
+#define MAX_RECTS ${MAX_RECTS}
+#define DIM ${DIM.toFixed(2)}`,
+    ),
     uniforms,
     transparent: true,
     cullFace: false,
@@ -259,6 +294,42 @@ export function start(container: HTMLElement): void {
     pointer.ts = 0;
   });
 
+  // Text boxes in page coordinates, re-measured when layout or fonts change. Ranges give
+  // the tight box of the text itself rather than the full width of its block.
+  let textBoxes: { top: number; bottom: number; left: number; right: number }[] = [];
+  const measureText = () => {
+    const range = document.createRange();
+    textBoxes = [...document.querySelectorAll(TEXT_SELECTOR)].flatMap((el) => {
+      range.selectNodeContents(el);
+      const r = range.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return [];
+      const y = window.scrollY;
+      return [{ top: r.top + y, bottom: r.bottom + y, left: r.left, right: r.right }];
+    });
+  };
+  new ResizeObserver(measureText).observe(document.body);
+  void document.fonts?.ready.then(measureText);
+  measureText();
+  const PAD = 6;
+  const uploadText = (height: number) => {
+    const out = uniforms.uRects.value;
+    out.fill(-1e5);
+    const k = renderer.dpr;
+    let n = 0;
+    for (const box of textBoxes) {
+      const top = box.top - window.scrollY;
+      const bottom = box.bottom - window.scrollY;
+      if (bottom < -40 || top > height + 40) continue;
+      // Framebuffer pixels, origin bottom-left.
+      out[n * 4] = (box.left - PAD) * k;
+      out[n * 4 + 1] = (height - bottom - PAD) * k;
+      out[n * 4 + 2] = (box.right + PAD) * k;
+      out[n * 4 + 3] = (height - top + PAD) * k;
+      if (++n === MAX_RECTS) break;
+    }
+    uniforms.uFeather.value = 56 * k;
+  };
+
   // Section moods, from scroll position.
   const hero = document.querySelector<HTMLElement>('[data-section="hero"]');
   const footer = document.querySelector<HTMLElement>('[data-section="footer"]');
@@ -312,6 +383,7 @@ export function start(container: HTMLElement): void {
     uniforms.uScroll.value = (window.scrollY / window.innerHeight) * 2 * halfH;
     uniforms.uMood.value = [mood.grid, mood.footer, halfW, halfH];
     uniforms.uOpacity.value = mood.opacity;
+    uploadText(container.clientHeight || window.innerHeight);
 
     renderer.render({ scene, camera });
     if (firstFrame) {

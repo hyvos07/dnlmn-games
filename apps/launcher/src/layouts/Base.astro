@@ -14,6 +14,8 @@ interface Props {
   ogImage?: string;
   /** Run the WebGL scene (index only). Other pages show the static poster. */
   scene?: boolean;
+  /** Pointer-reactive dot grid instead (quiet text pages like about). */
+  dots?: boolean;
   /** Pre-applied tag filter (the /tag/<tag>/ pages). */
   tag?: string;
   /** Tags the head script may accept from ?tag= (so unknown values are ignored). */
@@ -29,6 +31,7 @@ const {
   path,
   ogImage = '/og/home.png',
   scene = false,
+  dots = false,
   tag,
   tags = [],
   css = '',
@@ -73,7 +76,7 @@ const headScript = `(function(d){d.classList.add('js');try{var q=new URLSearchPa
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    <div class="scene" id="scene" data-webgl={scene ? '' : undefined} aria-hidden="true"></div>
+    <div class="scene" id="scene" data-webgl={scene ? '' : undefined} data-dots={dots ? '' : undefined} aria-hidden="true"></div>
     <div class="page">
       <SiteHeader current={nav} />
       <main id="main">
