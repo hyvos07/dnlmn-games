@@ -1153,6 +1153,16 @@ html[data-touch] .ghost {
   .footer-big {
     grid-column: 1 / -1;
   }
+/* The credit link stays the same weight as the text around it; hover only recolours
+   the underline (no bolder text, no thicker line). */
+.fineprint a {
+  font-weight: inherit;
+}
+
+.fineprint a:hover {
+  text-decoration-thickness: 1.5px;
+}
+
 }
 
 /* ── Prose pages (about, 404) ─────────────────────────────────────────── */
