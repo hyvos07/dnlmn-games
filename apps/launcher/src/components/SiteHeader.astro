@@ -6,7 +6,8 @@ const { current } = Astro.props;
 ---
 
 <header class="masthead wrap">
-  <a class="mark" href="/" aria-label="Games by dnlmn, home">
+  <!-- No aria-label: the visible text is the accessible name (WCAG 2.5.3 label in name). -->
+  <a class="mark" href="/">
     <svg viewBox="0 0 32 32" aria-hidden="true">
       <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.08"></rect>
       <path
@@ -18,7 +19,7 @@ const { current } = Astro.props;
         stroke-linejoin="round"></path>
       <circle cx="22" cy="23" r="2.5" fill="var(--secondary)"></circle>
     </svg>
-    <span>dnlmn<span aria-hidden="true">/</span>games</span>
+    <span>dnlmn/games</span>
   </a>
   <nav aria-label="Main">
     <ul class="nav">
