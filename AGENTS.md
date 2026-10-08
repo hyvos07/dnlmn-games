@@ -55,7 +55,7 @@ Only touch files inside `games/<slug>/`. If you think another game or the SDK ne
 Every game depends on it, so treat it as a public API. Keep changes backward compatible, add tests in `packages/sdk`, and run the full `pnpm build && pnpm test:e2e` to make sure all games still boot.
 
 ### Change the launcher
-The launcher reads manifests and never imports game code. Keep it near-zero JS. Adding a UI framework (React/Svelte islands) needs an ADR.
+The launcher reads manifests and never imports game code. It's motion-rich by design ([ADR-009](./docs/DECISIONS.md#adr-009-motion-rich-launcher)), but strictly as progressive enhancement: the critical path (HTML+CSS+JS for first paint) stays ≤ 75 KB gzipped and must work on its own. The WebGL scene and anime.js load via dynamic `import()` after first paint/idle (≤ 200 KB gzipped). Under `prefers-reduced-motion` there's no WebGL or staggered motion, and state changes are instant. Adding a UI framework (React/Svelte islands) still needs an ADR.
 
 ## Hard rules (summary; full list in RULES.md)
 

@@ -182,6 +182,15 @@ The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or g
 - OG images are generated at build time per game (title + thumbnail) to `/og/<slug>.png`, and the game's `index.html` references them through meta tags injected by `defineGameConfig` (Vite HTML transform).
 - The tag filter is a small vanilla script or Astro island. There's no framework runtime on the launcher unless an ADR adds one.
 
+### Critical path vs enhancement ([ADR-009](./DECISIONS.md#adr-009-motion-rich-launcher))
+
+| Layer | Contents | Budget (gzipped) | Loaded |
+|---|---|---|---|
+| Critical | HTML, CSS, `boot` script (filter, URL sync, navigation) and its static imports | ≤ 75 KB | Immediately |
+| Enhancement | WebGL scene (OGL), anime.js, motion code | ≤ 200 KB | Dynamic `import()` after first paint/idle, never under `prefers-reduced-motion` |
+
+The page is complete with the critical layer alone. Without JS, the filter falls back to static `/tag/<tag>/` pages. `assemble.ts` measures both layers: the critical set is every file referenced by the launcher HTML plus its static JS import graph, and every other launcher JS chunk counts as enhancement.
+
 ## 8. Hosting and headers
 
 Cloudflare static assets (Workers with static assets, or Pages, depending on which is current and convenient at setup time), with the custom domain `games.dnlmn.dev`.

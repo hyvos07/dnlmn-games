@@ -79,3 +79,18 @@ A short log of decisions that would be expensive to reverse, so nobody (human or
 - **Decision:** Biome for linting and formatting.
 - **Consequences:** Fewer plugins are available than in the ESLint ecosystem. The Astro file support may be partial, so we accept that or format `.astro` separately.
 - **Revisit when:** A needed rule only exists in ESLint.
+
+## ADR-009: Motion-rich launcher
+- **Status:** Accepted
+- **Date:** 2026-10-08
+- **Context:** ADR-002 picked Astro for a near-zero-JS launcher, and RULES §4 capped it at 75 KB gzipped in total. The owner wants the launcher to feel like an arcade: a WebGL scene of floating game pieces behind the page, staggered reveals, a FLIP-animated filter, and a cursor-following snake in the footer. That can't fit in 75 KB, and "near-zero JS" no longer describes the goal.
+- **Decision:** Allow **WebGL** and **anime.js** in the launcher, strictly as **progressive enhancement**. Use **OGL** for WebGL because it does instanced low-poly meshes with custom shaders at a fraction of three.js's size. three.js is allowed only if OGL can't produce a needed effect. The rules:
+  - **Critical path** (HTML + CSS + JS needed for first paint) stays ≤ 75 KB gzipped. The page must be complete and usable with only this: grid, links, and filter (with a no-JS fallback).
+  - **Enhancement JS** (WebGL scene + anime.js + motion code) ≤ 200 KB gzipped, loaded with dynamic `import()` only after first paint/idle (`requestIdleCallback`).
+  - One WebGL context and one canvas for the whole page. Pause rendering when the tab is hidden or the scene is invisible. Cap `devicePixelRatio` at 2 (1.5 on mobile) and scale object counts down on mobile/low-core devices.
+  - `prefers-reduced-motion`: no WebGL and no staggers. Show a static poster and make state changes instant.
+  - Native scroll only: no scroll-jacking or smooth-scroll libraries.
+  - If WebGL fails or JS is disabled, the page still fully works. The h1 is real HTML and the LCP element, never the canvas.
+  - Still no UI framework runtime (React/Svelte/etc.) without a further ADR.
+- **Consequences:** This partially supersedes the "near-zero JS" consequence of ADR-002. Astro remains the launcher. The launcher's Lighthouse mobile Performance target drops from the PRD's original ≥ 95 to ≥ 90, now recorded in RULES §4. `scripts/assemble.ts` enforces the two budgets separately. Motion code needs more care (fallbacks, reduced motion, CLS 0) and more e2e coverage.
+- **Revisit when:** Enhancement JS approaches 200 KB, Lighthouse mobile Performance drops below 90, or the motion starts hurting usability on low-end phones.

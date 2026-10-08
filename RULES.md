@@ -32,13 +32,16 @@ Non-negotiable rules for this repo. They apply to humans and AI agents equally. 
 
 | Thing | Budget |
 |---|---|
-| Launcher HTML+CSS+JS (gzipped) | ≤ 75 KB |
+| Launcher critical path: HTML+CSS+JS needed for first paint (gzipped) | ≤ 75 KB |
+| Launcher enhancement JS: WebGL scene + anime.js, loaded after first paint/idle (gzipped) | ≤ 200 KB |
+| Launcher Lighthouse mobile Performance | ≥ 90 |
 | Thumbnail (each, optimized) | ≤ 40 KB |
 | Standard game initial download (gzipped) | ≤ 1.5 MB without a loader. Up to 5 MB with a progress loader |
 | Any single file | < 25 MiB (hosting limit) |
 | Frame rate | 60 fps target on a mid-range phone |
 
 - **MUST**: Budgets are enforced by `scripts/assemble.ts`. Raise `budgetKb` in a manifest only with a reason in the PR.
+- **MUST**: Launcher enhancement JS is loaded with dynamic `import()` after first paint, and the page works fully without it (see [ADR-009](./docs/DECISIONS.md#adr-009-motion-rich-launcher)).
 - **SHOULD**: Prefer compressed audio (`.ogg`/`.m4a`) and sprite atlases over many small PNGs.
 - **SHOULD**: Lazy-load large assets after the start screen, not before.
 
@@ -64,7 +67,7 @@ Non-negotiable rules for this repo. They apply to humans and AI agents equally. 
 - **MUST**: Launcher is fully keyboard-navigable with visible focus. Every thumbnail has meaningful `alt` text.
 - **MUST**: Text in the launcher meets WCAG AA contrast.
 - **SHOULD**: Games avoid relying on color alone to signal state, and avoid rapid full-screen flashing (more than 3 per second).
-- **SHOULD**: Launcher animations respect `prefers-reduced-motion`.
+- **MUST**: Launcher animations respect `prefers-reduced-motion`: no WebGL scene, no staggers, instant state changes.
 
 ## 8. Privacy and security
 
