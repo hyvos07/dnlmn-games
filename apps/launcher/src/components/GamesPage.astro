@@ -16,7 +16,6 @@ const { tag } = Astro.props;
 const games = await getGames();
 const tags = tagCounts(games);
 const total = games.length;
-const visible = tag ? games.filter((g) => g.tags.includes(tag as never)).length : total;
 
 // Filtering is pure CSS keyed off <html data-tag> / [data-touch], so it works before
 // JS runs (and without JS on the /tag/ pages). JS only flips the attributes.
@@ -46,9 +45,11 @@ const css = [
   <Hero games={games} />
   <section class="section wrap" id="games" data-section="grid" aria-labelledby="games-title">
     <header class="section-head">
-      <p class="kicker">01 · Play</p>
       <h2 id="games-title">The games</h2>
-      <p class="count"><span data-count>{visible}</span> <span data-count-label>{visible === 1 ? 'game' : 'games'}</span></p>
+      <button class="toggle" type="button" data-touch-toggle data-js-only aria-pressed="false">
+        <span class="switch" aria-hidden="true"></span>
+        Touch-friendly only
+      </button>
     </header>
     <TagFilter tags={tags} total={total} active={tag} />
     <ol class="grid" data-grid>

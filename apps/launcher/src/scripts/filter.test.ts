@@ -23,7 +23,6 @@ const FIXTURE = `
   <a class="chip" data-tag="puzzle">Puzzle</a>
   <button data-touch-toggle aria-pressed="false">Touch</button>
 </nav>
-<p><span data-count>0</span> <span data-count-label>games</span></p>
 <ol data-grid>
   <li class="card-item" id="snake" data-tags="arcade classic" data-touch></li>
   <li class="card-item" id="mouse-only" data-tags="puzzle"></li>
@@ -147,23 +146,22 @@ describe('applyFilter', () => {
     expect(toggle?.getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('updates the count and its label, ignoring ghosts', () => {
-    const count = document.querySelector('[data-count]');
-    const label = document.querySelector('[data-count-label]');
+  it('announces how many games are showing, ignoring ghosts', () => {
+    const status = document.querySelector('[data-status]');
     applyFilter(state());
-    expect(count?.textContent).toBe('3');
-    expect(label?.textContent).toBe('games');
+    expect(status?.textContent).toBe('Showing 3 games.');
 
     applyFilter(state('classic'));
-    expect(count?.textContent).toBe('1');
-    expect(label?.textContent).toBe('game');
+    expect(status?.textContent).toBe('Showing 1 game tagged classic.');
   });
 
   it('shows the empty state only when nothing matches', () => {
     const empty = document.querySelector<HTMLElement>('[data-empty]');
     applyFilter(state('puzzle', true));
     expect(empty?.hidden).toBe(false);
-    expect(document.querySelector('[data-count]')?.textContent).toBe('0');
+    expect(document.querySelector('[data-status]')?.textContent).toBe(
+      'Showing 0 games tagged puzzle and that work with touch.',
+    );
     applyFilter(state());
     expect(empty?.hidden).toBe(true);
   });

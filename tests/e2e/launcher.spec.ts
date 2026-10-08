@@ -88,13 +88,13 @@ test.describe('tag filter', () => {
     expect(ghosts.length).toBeGreaterThan(0);
     for (const ghost of ghosts) await expect(ghost).toBeHidden();
     const expected = published.filter((g) => (g.manifest.tags as string[]).includes(TAG)).length;
-    await expect(page.locator('[data-count]')).toHaveText(String(expected));
+    expect(await visibleSlugs(page)).toHaveLength(expected);
 
     await all.click();
     await expect(page).not.toHaveURL(/tag=/);
     await expect(page.locator('html')).not.toHaveAttribute('data-tag', /.*/);
     await expect(all).toHaveAttribute('aria-current', 'true');
-    await expect(page.locator('[data-count]')).toHaveText(String(published.length));
+    expect(await visibleSlugs(page)).toHaveLength(published.length);
 
     await page.goBack();
     await expect(page).toHaveURL(urlTag(TAG));
@@ -122,7 +122,7 @@ test.describe('tag filter', () => {
     await page.goto('/?tag=nope');
     await expect(page.locator('html')).not.toHaveAttribute('data-tag', /.*/);
     await expect(page.locator('a.chip[data-tag=""]')).toHaveAttribute('aria-current', 'true');
-    await expect(page.locator('[data-count]')).toHaveText(String(published.length));
+    expect(await visibleSlugs(page)).toHaveLength(published.length);
   });
 
   test('/tag/<tag>/ filters without JavaScript', async ({ browser, baseURL }) => {

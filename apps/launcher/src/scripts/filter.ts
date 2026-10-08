@@ -58,10 +58,6 @@ export function applyFilter(state: FilterState, { announce = true } = {}): void 
 
   const games = [...document.querySelectorAll<HTMLElement>('.card-item:not(.ghost)')];
   const visible = games.filter((item) => matches(item, state)).length;
-  const count = document.querySelector('[data-count]');
-  const countLabel = document.querySelector('[data-count-label]');
-  if (count) count.textContent = String(visible);
-  if (countLabel) countLabel.textContent = visible === 1 ? 'game' : 'games';
   const empty = document.querySelector<HTMLElement>('[data-empty]');
   if (empty) empty.hidden = visible > 0;
   const status = document.querySelector('[data-status]');

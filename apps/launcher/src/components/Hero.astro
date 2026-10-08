@@ -6,7 +6,6 @@ interface Props {
 }
 const { games } = Astro.props;
 const latest = games[0];
-const count = games.length;
 // Letters are split at build time so motion can animate them. The h1's accessible
 // name comes from the sr-only copy; the visible letters are painted at first paint.
 const split = (word: string) => [...word];
@@ -14,7 +13,6 @@ const split = (word: string) => [...word];
 
 <section class="hero wrap" id="top" data-section="hero" aria-labelledby="hero-title">
   <div class="hero-meta">
-    <span>{count} {count === 1 ? 'game' : 'games'} · more on the way</span>
     <span>Est. 2026</span>
   </div>
   <h1 class="title" id="hero-title" data-title>
