@@ -33,7 +33,7 @@ vite.config.ts
 ## 2. Develop
 
 ```bash
-pnpm dev:game tile-flip     # http://localhost:5173/tile-flip/
+pnpm dev:game tile-flip     # http://localhost:4321/tile-flip/ (stop pnpm dev first)
 ```
 
 While you build, keep these in mind:

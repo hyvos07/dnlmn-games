@@ -147,10 +147,11 @@ export default defineGameConfig(import.meta.dirname);
 `defineGameConfig` reads `game.json`, sets `base: '/<slug>/'`, sets `build.outDir`, and adds shared defaults (target, asset inlining limit, etc.). In game code, refer to assets through imports (`import url from './sprite.png'`) or `import.meta.env.BASE_URL`, never with hard-coded `/` paths.
 
 ### Local dev
-- `pnpm dev` runs everything with hot reload on one origin, `http://localhost:4321`. Each game's Vite dev server gets its own port (5201, 5202, …), the launcher runs on 4322, and a small proxy (`scripts/lib/dev-proxy.ts`) routes `/<slug>/` and its HMR websocket to the right game, so launcher links work like in production.
-- `pnpm dev:launcher` runs only the Astro dev server. Clicking a card goes to a game path that doesn't exist there, which is expected.
-- `pnpm dev:game <slug>` runs the Vite dev server at `http://localhost:5173/<slug>/`.
-- `pnpm build && pnpm preview` serves the assembled `dist/` exactly like production. Use it before calling anything done.
+- `pnpm dev` uses the normal pnpm workspace script to run Astro on port 4321. The dev-only Vite plugin in `scripts/lib/dev-games.ts` mounts each game's independent Vite middleware at `/<slug>/`, including drafts. All HTTP requests and HMR websockets share Astro's server: no proxy, upstream ports, or separate game processes. Game configs and production bundles remain independent.
+- `pnpm dev:launcher` is an alias for the same Astro server, including game routes.
+- Game middleware runs before Astro's page guards, so extensionless Vite modules such as `/<slug>/@vite/client` are served without Astro requiring a trailing slash. Bare game paths redirect to `/<slug>/`.
+- `pnpm dev:game <slug>` runs only that game's Vite server at `http://localhost:4321/<slug>/`.
+- `pnpm build && pnpm preview` serves the assembled `dist/` on port 4321 exactly like production. Use it before calling anything done. Dev and preview are alternatives: stop one before starting the other. Dev fails if its port is occupied rather than silently choosing another port. The deployed Cloudflare site uses standard HTTPS, with all games on the same origin.
 
 ## 6. `@games/sdk`
 

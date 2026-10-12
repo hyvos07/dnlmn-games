@@ -113,3 +113,11 @@ A short log of decisions that would be expensive to reverse, so nobody (human or
   - Budget: ≤ 300 KB per clip, enforced by `assemble.ts`. That's separate from the 40 KB still budget.
 - **Consequences:** Cards come alive with real footage, and new games get it from the same command. Each clip is a committed binary (~150 KB) that has to be regenerated when the game's look changes. Clips cost bandwidth only for visitors with motion enabled, and only for cards they scroll near. `sharp` is now also a root dev dependency, for the thumbnail script.
 - **Revisit when:** Clips approach the budget, many games make the grid heavy to scroll, or browsers gain a better lightweight looping format (e.g. AVIF sequences with wide support).
+
+## ADR-012: One listening port for development
+- **Status:** Accepted
+- **Date:** 2026-10-11
+- **Context:** The custom dev runner started Astro on 4322 and each game on 5201 onward, then proxied them through 4321. This required extra processes and ports, and HMR could connect directly to an upstream port.
+- **Decision:** Run the launcher with its normal pnpm workspace script on 4321. A dev-only Vite plugin mounts independent game servers in middleware mode and attaches their base-prefixed HMR websockets to Astro's HTTP server. Standalone game dev also defaults to 4321 with strict port selection. Production builds and Cloudflare hosting stay as in ADR-010.
+- **Consequences:** One HTTP listener for the whole dev site, no reverse proxy or child-process orchestration, and unchanged game isolation. Stop dev before previewing on 4321. Restart dev after scaffolding a new game so its middleware is mounted.
+- **Revisit when:** The number of game pipelines makes starting all of them expensive.

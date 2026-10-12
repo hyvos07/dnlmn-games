@@ -117,7 +117,7 @@ if (install.status !== 0) fail('pnpm install failed. Run it manually once the pr
 
 console.log(`
 Next steps:
-  1. pnpm dev:game ${slug}          (http://localhost:5173/${slug}/)
+  1. pnpm dev:game ${slug}          (http://localhost:4321/${slug}/)
   2. Edit games/${slug}/game.json (tagline, description, tags, controls)
   3. pnpm thumbnail ${slug}         to replace the placeholder thumbnail
   4. Set "status": "published" in game.json when it is ready`);

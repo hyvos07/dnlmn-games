@@ -45,7 +45,7 @@ export function defineGameConfig(dir: string, overrides: UserConfig = {}): UserC
       assetsInlineLimit: 4096,
       sourcemap: false,
     },
-    server: { port: 5173 },
+    server: { port: 4321, strictPort: true },
     plugins: [gameHtml(manifest)],
   };
   return mergeConfig(base, overrides);

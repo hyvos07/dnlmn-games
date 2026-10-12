@@ -11,11 +11,13 @@ A collection of small browser games behind one game-selector page. Every game is
 ```bash
 pnpm install
 pnpm dev                               # whole site with hot reload → http://localhost:4321
-pnpm dev:launcher                      # menu only
-pnpm dev:game snake                    # one game
+pnpm dev:launcher                      # alias for the whole site on port 4321
+pnpm dev:game snake                    # one game only → http://localhost:4321/snake/
 pnpm new-game my-game --engine kaplay  # new game (or --engine vanilla)
 pnpm build && pnpm preview             # production-identical local build → http://localhost:4321
 ```
+
+Development pages and hot reload share port 4321. Stop dev before starting production preview on that same port.
 
 ## Docs
 

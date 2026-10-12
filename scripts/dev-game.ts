@@ -1,4 +1,4 @@
-/** `pnpm dev:game <slug>`: start the Vite dev server for one game at http://localhost:5173/<slug>/. */
+/** `pnpm dev:game <slug>`: start one game at http://localhost:4321/<slug>/. */
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';

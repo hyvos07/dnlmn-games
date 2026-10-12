@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "tsx scripts/dev.ts",
+    "dev": "pnpm --filter @games/launcher dev",
     "dev:launcher": "pnpm --filter @games/launcher dev",
     "dev:game": "tsx scripts/dev-game.ts",
     "new-game": "tsx scripts/new-game.ts",

@@ -19,8 +19,8 @@ Read before non-trivial work:
 ```bash
 pnpm install                          # install everything
 pnpm dev                              # whole site with hot reload → http://localhost:4321
-pnpm dev:launcher                     # Astro dev server for the menu only
-pnpm dev:game <slug>                  # Vite dev server → http://localhost:5173/<slug>/
+pnpm dev:launcher                     # alias for the whole-site Astro dev server
+pnpm dev:game <slug>                  # one game only → http://localhost:4321/<slug>/
 pnpm new-game <slug> --engine kaplay  # scaffold a game (kaplay is the default; or vanilla)
 pnpm thumbnail <slug>                 # record real gameplay: games/<slug>/thumbnail.png + looping preview.webp
 pnpm check                            # Biome lint+format check, tsc, manifest validation
