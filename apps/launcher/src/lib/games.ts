@@ -11,23 +11,21 @@ export interface Game extends GameManifest {
   previewSrc?: string;
 }
 
-/** Published games, newest first. Hidden and draft games are never listed. */
+/** Published games in release order, oldest first. Hidden and draft games are never listed. */
 export async function getGames(): Promise<Game[]> {
   const entries = await getCollection('games');
   const published = entries
     .map((entry) => entry.data)
     .filter((game) => game.status === 'published')
     .sort((a, b) => a.addedAt.localeCompare(b.addedAt) || a.slug.localeCompare(b.slug));
-  return published
-    .map((game, i) => ({
-      ...game,
-      number: i + 1,
-      href: `/${game.slug}/`,
-      alt: thumbnailAlt(game),
-      touch: game.input.includes('touch'),
-      previewSrc: game.preview ? `/thumbs/${game.slug}-preview.webp` : undefined,
-    }))
-    .reverse();
+  return published.map((game, i) => ({
+    ...game,
+    number: i + 1,
+    href: `/${game.slug}/`,
+    alt: thumbnailAlt(game),
+    touch: game.input.includes('touch'),
+    previewSrc: game.preview ? `/thumbs/${game.slug}-preview.webp` : undefined,
+  }));
 }
 
 /** Tags used by at least one published game, with counts, most used first. */

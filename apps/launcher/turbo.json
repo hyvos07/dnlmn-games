@@ -9,6 +9,7 @@
         "!public/og/**",
         "$TURBO_ROOT$/games/*/game.json",
         "$TURBO_ROOT$/games/*/thumbnail.png",
+        "$TURBO_ROOT$/games/*/preview.webp",
         "$TURBO_ROOT$/packages/*/src/**",
         "$TURBO_ROOT$/scripts/lib/**"
       ],

@@ -58,6 +58,7 @@ Non-negotiable rules for this repo. They apply to humans and AI agents equally. 
 ## 6. Content and metadata
 
 - **MUST**: Every game has `game.json`, `README.md` (from [docs/templates/GAME_README.md](./docs/templates/GAME_README.md)), `CREDITS.md`, and a thumbnail.
+- **MUST**: Every published game has a game-specific drawn SVG at `public/favicon.svg`, linked through the relative `./favicon.svg` in `index.html` so Vite applies the base once. Replace the scaffold placeholder; no emoji artwork or copied launcher identity. See [FAVICONS.md](./docs/FAVICONS.md).
 - **MUST**: Every third-party asset (sprite, sound, music, font) is listed in `CREDITS.md` with source URL and license. Only use CC0, CC-BY (with credit), or MIT/OFL fonts. No "found it on Google" assets.
 - **SHOULD**: Tags come from this vocabulary. Add new ones in the same PR that first uses them.
 

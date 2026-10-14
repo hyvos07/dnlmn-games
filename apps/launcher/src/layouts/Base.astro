@@ -2,6 +2,7 @@
 import displayFont from '@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-800-normal.woff2?url';
 import sansFont from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 import { getAccent } from '@games/config/theme';
+import favicon from '../../../../public-root/favicon.svg?url&no-inline';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import '../styles/global.css';
@@ -56,7 +57,7 @@ const headScript = `(function(d){d.classList.add('js');try{var q=new URLSearchPa
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={new URL(path, site).href} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={favicon} type="image/svg+xml" />
     <meta name="theme-color" content="#0C0C10" />
     <meta name="color-scheme" content="dark" />
     <meta property="og:type" content="website" />

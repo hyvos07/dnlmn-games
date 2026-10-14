@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Typing Fortress — rune-lit battlements</title>
+  <rect width="64" height="64" rx="14" fill="#101C1B"/>
+  <path d="M11 49V21h6v6h6V13h6v7h6v-7h6v14h6v-6h6v28H11Z" fill="#E5BC76"/>
+  <path d="M27 49V39a5 5 0 0 1 10 0v10" fill="#101C1B"/>
+  <path d="m32 24 5 6-5 6-5-6Z" fill="#43DED0"/>
+  <path d="M9 53h46" stroke="#E5BC76" stroke-width="3" stroke-linecap="round"/>
+</svg>

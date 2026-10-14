@@ -5,7 +5,6 @@ import ComingSoon from './ComingSoon.astro';
 import GameCard from './GameCard.astro';
 import Hero from './Hero.astro';
 import MergePeek from './peeks/MergePeek.astro';
-import TypingPeek from './peeks/TypingPeek.astro';
 import TagFilter from './TagFilter.astro';
 
 interface Props {
@@ -54,9 +53,6 @@ const css = [
     <TagFilter tags={tags} total={total} active={tag} />
     <ol class="grid" data-grid>
       {games.map((game) => <GameCard game={game} />)}
-      <ComingSoon kind="typing" title="A typing game" tagline="Words fall. Type them before they land.">
-        <TypingPeek />
-      </ComingSoon>
       <ComingSoon kind="merge" title="2048" tagline="Slide, merge, reach 2048. Made for thumbs.">
         <MergePeek />
       </ComingSoon>

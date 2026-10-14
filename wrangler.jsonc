@@ -11,7 +11,11 @@
     "not_found_handling": "404-page",
     // /snake -> /snake/ ; /snake/index.html is served at /snake/.
     "html_handling": "auto-trailing-slash"
-  }
-  // Enable on the first deploy to attach the custom domain:
-  // "routes": [{ "pattern": "games.dnlmn.dev", "custom_domain": true }]
+  },
+  "routes": [
+    {
+      "pattern": "games.dnlmn.dev",
+      "custom_domain": true
+    }
+  ]
 }

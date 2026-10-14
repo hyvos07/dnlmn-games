@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Games by dnlmn</title><rect width="32" height="32" rx="7" fill="#0C0C10"/><path d="M8 22V12a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2a4 4 0 0 1-4 4h-4" fill="none" stroke="#C6FF3D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="23" r="2.5" fill="#FF5C8A"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Games by dnlmn — arcade controller</title>
+  <rect width="64" height="64" rx="14" fill="#0C0C10"/>
+  <path d="M23 18h18c6 0 9 4 11 10l5 15c2 7-4 12-9 7l-7-7H23l-7 7c-5 5-11 0-9-7l5-15c2-6 5-10 11-10Z" fill="#C6FF3D"/>
+  <path d="M21 26v12m-6-6h12" fill="none" stroke="#0C0C10" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="44" cy="28" r="4" fill="#FF5C8A"/>
+  <circle cx="49" cy="37" r="3.5" fill="#0C0C10"/>
+</svg>

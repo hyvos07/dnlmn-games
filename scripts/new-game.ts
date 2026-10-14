@@ -120,4 +120,5 @@ Next steps:
   1. pnpm dev:game ${slug}          (http://localhost:4321/${slug}/)
   2. Edit games/${slug}/game.json (tagline, description, tags, controls)
   3. pnpm thumbnail ${slug}         to replace the placeholder thumbnail
-  4. Set "status": "published" in game.json when it is ready`);
+  4. Replace public/favicon.svg with original game-specific SVG artwork (docs/FAVICONS.md)
+  5. Set "status": "published" in game.json when it is ready`);

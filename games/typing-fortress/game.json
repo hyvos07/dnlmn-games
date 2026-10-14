@@ -1,0 +1,19 @@
+{
+  "slug": "typing-fortress",
+  "title": "Typing Fortress",
+  "tagline": "Light the runes. Hold the gate. Type to survive.",
+  "description": "Defend Rune Bastion from an endless siege of stone creatures and crystal spirits. Type their words to unleash magic, build your combo, and beat your best score. English words, three difficulties, and a physical keyboard required.",
+  "engine": "vanilla",
+  "tags": ["word", "arcade", "action"],
+  "input": ["keyboard"],
+  "controls": {
+    "keyboard": "Choose Classic or Editable in menu Options. Classic ignores wrong letters; Backspace clears the prefix. Editable supports Backspace/Delete, cursor movement, and selection. Exact word matches fire automatically. Escape pauses. Use HUD buttons for mute/fullscreen (F and M are letters)."
+  },
+  "orientation": "any",
+  "thumbnail": "thumbnail.png",
+  "preview": "preview.webp",
+  "thumbnailAlt": "A rune-lit stone fortress surrounded by golems and crystal spirits with English word labels.",
+  "status": "published",
+  "addedAt": "2026-10-12",
+  "version": "1.0.0"
+}

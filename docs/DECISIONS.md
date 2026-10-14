@@ -121,3 +121,11 @@ A short log of decisions that would be expensive to reverse, so nobody (human or
 - **Decision:** Run the launcher with its normal pnpm workspace script on 4321. A dev-only Vite plugin mounts independent game servers in middleware mode and attaches their base-prefixed HMR websockets to Astro's HTTP server. Standalone game dev also defaults to 4321 with strict port selection. Production builds and Cloudflare hosting stay as in ADR-010.
 - **Consequences:** One HTTP listener for the whole dev site, no reverse proxy or child-process orchestration, and unchanged game isolation. Stop dev before previewing on 4321. Restart dev after scaffolding a new game so its middleware is mounted.
 - **Revisit when:** The number of game pipelines makes starting all of them expensive.
+
+## ADR-013: OGL battlefield for Typing Fortress
+- **Status:** Accepted
+- **Date:** 2026-10-12
+- **Context:** Typing Fortress requires a real low-poly 3D fortress, enemies approaching from all directions, and animated spell effects within the standard game budget. A full editor-based engine would add unnecessary download and build complexity.
+- **Decision:** Use a game-local **OGL** renderer with procedural geometry, vanilla TypeScript simulation, DOM word labels, and **anime.js** presentation effects. The manifest uses `engine: "vanilla"` because the game loop, input, and rules remain vanilla TypeScript; OGL supplies rendering rather than a game framework. This ADR explicitly extends the vanilla Canvas/DOM option in ADR-003 to this WebGL game. Declare OGL and anime.js in the game's own dependencies; never import launcher scene code.
+- **Consequences:** No manifest schema or SDK API changes. Reuse geometry and bound enemies/effects, cap pixel ratio, honor reduced motion, pause all animation alongside simulation, and handle unavailable WebGL with a readable message. Keep text outside the 3D scene for contrast and predictable readability. All geometry, word lists, and synthesized audio are original, avoiding model and audio downloads. Measure the assembled budget and browser behavior before calling the implementation complete.
+- **Revisit when:** The renderer becomes hard to maintain, fails the game budget, or cannot keep word labels readable at the supported enemy limit.

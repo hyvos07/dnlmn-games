@@ -22,7 +22,7 @@ This creates `games/tile-flip/` with:
 game.json        # pre-filled, status: "draft"
 index.html
 src/main.ts      # initGame() + a start screen already wired up
-public/
+public/favicon.svg # draft placeholder; replace with a game-specific drawn SVG
 thumbnail.png    # placeholder, replace it with `pnpm thumbnail tile-flip`
 CREDITS.md
 README.md        # from docs/templates/GAME_README.md
@@ -46,6 +46,7 @@ While you build, keep these in mind:
 ## 3. Fill in the metadata
 
 - `game.json`: title, tagline (≤ 60 chars), description, tags (from the vocabulary in RULES §6), input, controls, orientation.
+- `public/favicon.svg`: original, game-specific vector artwork; replace the scaffold's draft placeholder. Keep `<link rel="icon" href="./favicon.svg" type="image/svg+xml" />` in `index.html` so Vite applies the game's base path once. Review at 16/32/64 pixels; do not use emoji. See [FAVICONS.md](./FAVICONS.md).
 - `thumbnail.png`: at least 640px wide, 16:10 or 1:1, shows actual gameplay, not just the title. The launcher optimizes it. `pnpm thumbnail <slug> [--wait <ms>] [--selector <css>] [--still]` builds the game, runs it in a headless browser on a fake clock, hides the HUD and overlays, and captures the canvas (or a `[data-thumbnail]` element). Give your title screen an attract/demo mode so there's real gameplay to capture.
 - `preview.webp` (optional, recommended): the same command also records a seamless 4-second loop that plays on the game's card ([ADR-011](./DECISIONS.md#adr-011-looping-gameplay-clips-on-launcher-cards)). Add `"preview": "preview.webp"` to `game.json` to use it, and keep it ≤ 300 KB. Pass `--still` to write only the thumbnail.
 - `CREDITS.md`: every third-party asset with source URL + license. Write "All assets original" if that's true.
@@ -63,6 +64,7 @@ pnpm test:e2e
 
 Manual pass on the preview:
 - [ ] No 404s in the network tab, no console errors
+- [ ] The tab uses the game's own SVG favicon and its resolved URL loads successfully
 - [ ] Start screen shows, and audio only starts after a click/tap
 - [ ] HUD works: Menu returns to `/`, Fullscreen, Mute (persists after reload), Pause, "?" panel shows controls
 - [ ] Switching tabs pauses the game

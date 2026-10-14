@@ -5,7 +5,7 @@ interface Props {
   games: Game[];
 }
 const { games } = Astro.props;
-const latest = games[0];
+const latest = games.at(-1);
 // Letters are split at build time so motion can animate them. The h1's accessible
 // name comes from the sr-only copy; the visible letters are painted at first paint.
 const split = (word: string) => [...word];

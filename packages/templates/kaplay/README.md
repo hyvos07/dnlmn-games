@@ -35,6 +35,8 @@ One or two sentences: what the player does and why it's fun.
 ## Assets
 See [CREDITS.md](./CREDITS.md).
 
+Replace `public/favicon.svg` with original artwork related to this game before publishing. Keep the relative `./favicon.svg` link in `index.html`; see [favicon conventions](../../docs/FAVICONS.md).
+
 ## Known issues
 - …
 

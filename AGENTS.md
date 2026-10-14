@@ -52,6 +52,10 @@ public-root/          files copied to dist/ root (_headers, robots.txt, favicon)
 ### Add a new game
 Follow [docs/ADDING_A_GAME.md](./docs/ADDING_A_GAME.md). In short: `pnpm new-game <slug> --engine kaplay`, fill in `game.json`, write the game in `src/`, add thumbnail + `CREDITS.md` + `README.md`, then `pnpm build && pnpm preview` and test at `/<slug>/`.
 
+Typing Fortress uses a game-local OGL renderer with vanilla TypeScript rules and anime.js effects ([ADR-013](./docs/DECISIONS.md#adr-013-ogl-battlefield-for-typing-fortress)). Its manifest is `engine: "vanilla"`; this is a specific renderer exception, not permission to add other engines without an ADR.
+
+Every published game also needs an original, game-specific `public/favicon.svg`; replace the scaffold's draft placeholder and keep the relative `./favicon.svg` link in `index.html` so Vite applies the game base once. The launcher uses its own arcade-controller SVG. See [docs/FAVICONS.md](./docs/FAVICONS.md) for artwork, routing, and verification conventions. Do not use emoji as favicon artwork.
+
 ### Change a game
 Only touch files inside `games/<slug>/`. If you think another game or the SDK needs changing too, stop and say so rather than doing it in the same change.
 
@@ -59,6 +63,8 @@ Only touch files inside `games/<slug>/`. If you think another game or the SDK ne
 Every game depends on it, so treat it as a public API. Keep changes backward compatible, add tests in `packages/sdk`, and run the full `pnpm build && pnpm test:e2e` to make sure all games still boot.
 
 ### Change the launcher
+List games in release order: oldest `addedAt` first, with alphabetical slug order for same-day releases. Keep card numbers ascending; the hero's "Latest" shortcut still points to the newest game.
+
 The launcher reads manifests and never imports game code. It's motion-rich by design ([ADR-009](./docs/DECISIONS.md#adr-009-motion-rich-launcher)), but strictly as progressive enhancement: the critical path (HTML+CSS+JS for first paint) stays ≤ 75 KB gzipped and must work on its own. The WebGL scene and anime.js load via dynamic `import()` after first paint/idle (≤ 200 KB gzipped). Under `prefers-reduced-motion` there's no WebGL or staggered motion, and state changes are instant. Adding a UI framework (React/Svelte islands) still needs an ADR. To change the accent colour site-wide (launcher, games, OG images), edit `ACCENT` in `packages/config/src/theme.ts`.
 
 ## Hard rules (summary; full list in RULES.md)

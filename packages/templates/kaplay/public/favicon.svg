@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Games by dnlmn</title><rect width="32" height="32" rx="7" fill="#0C0C10"/><path d="M8 22V12a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2a4 4 0 0 1-4 4h-4" fill="none" stroke="#C6FF3D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="23" r="2.5" fill="#FF5C8A"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Game favicon placeholder — replace before publishing</title>
+  <rect width="64" height="64" rx="14" fill="#0C0C10"/>
+  <path d="m32 11 21 21-21 21-21-21Z" fill="none" stroke="#C6FF3D" stroke-width="5"/>
+  <path d="M32 23v18m-9-9h18" stroke="#C6FF3D" stroke-width="5" stroke-linecap="round"/>
+</svg>

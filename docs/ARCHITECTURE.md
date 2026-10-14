@@ -67,6 +67,7 @@ games-dnlmn/
 | Path | Owner | Notes |
 |---|---|---|
 | `/` | launcher | Game grid |
+| `/favicon.svg` | launcher | Conventional root fallback for the launcher SVG identity |
 | `/about/` | launcher | |
 | `/404.html` | launcher | Served for unknown paths |
 | `/_astro/*` | launcher | Hashed launcher assets |
@@ -76,6 +77,7 @@ games-dnlmn/
 | `/sitemap.xml` | launcher | |
 | `/<slug>/` | game | Game entry `index.html` |
 | `/<slug>/assets/*` | game | Hashed game assets from Vite |
+| `/<slug>/favicon.svg` | game | Game-specific SVG copied from its own `public/` directory |
 | `/api/*` | *(reserved)* | Future Worker endpoints (leaderboards) |
 
 **Reserved slugs** (the build rejects them as game slugs): `about`, `api`, `og`, `thumbs`, `assets`, `static`, `_astro`, `tag`, `tags`, `play`, `admin`, `404`.
@@ -147,11 +149,18 @@ export default defineGameConfig(import.meta.dirname);
 `defineGameConfig` reads `game.json`, sets `base: '/<slug>/'`, sets `build.outDir`, and adds shared defaults (target, asset inlining limit, etc.). In game code, refer to assets through imports (`import url from './sprite.png'`) or `import.meta.env.BASE_URL`, never with hard-coded `/` paths.
 
 ### Local dev
+
+Each game's HTML links its own `public/favicon.svg` using the relative `./favicon.svg`; Vite applies the base once in standalone development, the combined Astro server, and production. The launcher imports `public-root/favicon.svg` as a URL in `Base.astro`, so it is also served in Astro development; assembly retains the conventional root fallback. Artwork and future-game conventions are in [FAVICONS.md](./FAVICONS.md).
+
 - `pnpm dev` uses the normal pnpm workspace script to run Astro on port 4321. The dev-only Vite plugin in `scripts/lib/dev-games.ts` mounts each game's independent Vite middleware at `/<slug>/`, including drafts. All HTTP requests and HMR websockets share Astro's server: no proxy, upstream ports, or separate game processes. Game configs and production bundles remain independent.
 - `pnpm dev:launcher` is an alias for the same Astro server, including game routes.
 - Game middleware runs before Astro's page guards, so extensionless Vite modules such as `/<slug>/@vite/client` are served without Astro requiring a trailing slash. Bare game paths redirect to `/<slug>/`.
 - `pnpm dev:game <slug>` runs only that game's Vite server at `http://localhost:4321/<slug>/`.
 - `pnpm build && pnpm preview` serves the assembled `dist/` on port 4321 exactly like production. Use it before calling anything done. Dev and preview are alternatives: stop one before starting the other. Dev fails if its port is occupied rather than silently choosing another port. The deployed Cloudflare site uses standard HTTPS, with all games on the same origin.
+
+### Game-local WebGL rendering
+
+Typing Fortress uses vanilla TypeScript rules and lifecycle with a game-local OGL renderer, DOM word labels, and anime.js effects ([ADR-013](./DECISIONS.md#adr-013-ogl-battlefield-for-typing-fortress)). Its manifest remains `engine: "vanilla"`; OGL is a rendering dependency. The launcher reads its manifest and captures exactly as for other games. Renderer code stays inside the game and is never imported from the launcher.
 
 ## 6. `@games/sdk`
 
@@ -185,6 +194,7 @@ The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or g
 ## 7. Launcher
 
 - Astro content collection loads `../../games/*/game.json` with the glob loader and the same Zod schema from `@games/config`. Only `published` games are listed.
+- Published cards run from the first release to the latest: ascending `addedAt`, then alphabetical slug for ties. Card numbers match that order. The hero's "Latest" link selects the last game in this release-ordered list.
 - `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, copies a game's preview clip to `/thumbs/<slug>-preview.webp`, and a basic OG card per game to `/og/<slug>.png` (plus `/og/home.png`). Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
 - Theme: dark only. Accent tokens come from `@games/config/theme` (`ACCENT`) and are inlined as CSS variables.
 - Fonts (Bricolage Grotesque 800, Instrument Sans variable, latin subset) are self-hosted, preloaded and use `font-display: optional`, so a late font never shifts layout.
