@@ -91,6 +91,8 @@ If you can't run a step (no browser, etc.), say which step you skipped. Don't cl
 
 Playwright uses one worker in CI so software WebGL rendering does not compete with other tests. Install a fixed browser clock before navigation when testing animation loops, and advance it in bounded steps until the expected UI appears rather than assuming a fixed defeat time.
 
+For the long Typing Fortress defeat scenario, use bounded 50 ms `clock.fastForward` steps to simulate 20 fps. This preserves its 50 ms frame-delta limit while reducing software rendering work; keep `runFor` for tests that need every timer and intermediate frame.
+
 ## Style
 
 - TypeScript strict, Biome-formatted, `kebab-case.ts` files.

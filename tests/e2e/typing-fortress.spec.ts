@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { advanceUntilVisible, trackProblems } from './helpers.ts';
+import { trackProblems } from './helpers.ts';
 
 const ENEMIES = '.enemy-word[data-word][data-enemy-id]';
 
@@ -34,6 +34,18 @@ async function binding(page: Page): Promise<{ word: string; id: string }> {
   const id = await label.getAttribute('data-enemy-id');
   if (!word || !id) throw new Error('A visible creature must expose its binding word and label id');
   return { word, id };
+}
+
+/** Drive an unattended siege at 20 fps without replaying every intermediate WebGL frame. */
+async function advanceSiegeUntilOver(page: Page): Promise<void> {
+  const stage = page.locator('#stage');
+  for (let elapsed = 0; elapsed < 90_000; elapsed += 1000) {
+    if ((await stage.getAttribute('data-screen')) === 'over') break;
+    // The game admits at most 50 ms per frame. Short jumps preserve that simulation time;
+    // a single large fastForward would advance gameplay by only one clamped frame.
+    for (let frame = 0; frame < 20; frame++) await page.clock.fastForward(50);
+  }
+  await expect(stage).toHaveAttribute('data-screen', 'over');
 }
 
 test.describe('Typing Fortress physical keyboard play', () => {
@@ -161,7 +173,7 @@ test.describe('Typing Fortress physical keyboard play', () => {
     );
 
     // Let the public simulation reach defeat naturally; no state injection or test-only hooks.
-    await advanceUntilVisible(page, page.locator('#stage[data-screen="over"]'));
+    await advanceSiegeUntilOver(page);
     await expect(page.locator('#final-score')).not.toHaveText('0');
     await page.clock.runFor(700);
     await page.locator('#again').click();

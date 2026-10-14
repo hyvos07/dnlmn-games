@@ -166,6 +166,8 @@ Typing Fortress uses vanilla TypeScript rules and lifecycle with a game-local OG
 
 Playwright starts Wrangler against the assembled `dist/`, using bundled Chromium in CI. CI runs one worker to avoid contention between software WebGL renderers and simulated animation frames. For clock-controlled gameplay, install the clock with a fixed date before navigation so all timers and animation frames share it and seeded word selection is repeatable. Advance the clock in bounded steps until the public end-of-run UI appears; keep score, pause, and restart assertions intact.
 
+The long Typing Fortress defeat scenario advances with repeated 50 ms `clock.fastForward` steps, simulating 20 fps and retaining the game's 50 ms frame-delta limit. A large jump would advance the simulation by only one clamped frame, while `runFor` replays every intervening frame and is expensive with software WebGL. Other timing-sensitive scenarios retain `runFor` to exercise all intermediate frames and timers.
+
 ## 6. `@games/sdk`
 
 Tiny (target ≤ 5 KB gzipped), zero dependencies, framework-agnostic. Every game uses it.
