@@ -4,7 +4,6 @@ import { devGames } from '../../scripts/lib/dev-games.ts';
 
 export default defineConfig({
   site: 'https://games.dnlmn.dev',
-  trailingSlash: 'always',
   build: { format: 'directory' },
   devToolbar: { enabled: false },
   server: { port: 4321 },

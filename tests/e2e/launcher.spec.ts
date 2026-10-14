@@ -247,7 +247,7 @@ test('/about/ and /sitemap.xml return 200', async ({ request }) => {
 test('/no-such-page/ returns 404 with the themed page', async ({ page }) => {
   const response = await page.goto('/no-such-page/');
   expect(response?.status()).toBe(404);
-  await expect(page.getByText('Game over')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nothing here.' })).toBeVisible();
 });
 
 test('/about/ loads without errors', async ({ page }) => {

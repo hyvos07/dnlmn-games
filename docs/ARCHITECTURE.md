@@ -69,7 +69,7 @@ games-dnlmn/
 | `/` | launcher | Game grid |
 | `/favicon.svg` | launcher | Conventional root fallback for the launcher SVG identity |
 | `/about/` | launcher | |
-| `/404.html` | launcher | Served for unknown paths |
+| `/404.html` | launcher | Served with HTTP 404 at the original unknown URL; see [404.md](./404.md) |
 | `/_astro/*` | launcher | Hashed launcher assets |
 | `/og/*` | launcher | Generated OG images |
 | `/thumbs/*` | launcher | Optimized thumbnails and preview clips |

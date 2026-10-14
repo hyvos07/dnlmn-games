@@ -1,0 +1,177 @@
+.lost {
+  width: min(100% - 2 * var(--gutter), 460px);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding-block: 32px;
+}
+.shooter {
+  width: min(100%, 360px);
+}
+.shooter-board {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 9 / 10;
+  border: 1px solid color-mix(in srgb, var(--accent) 15%, var(--line));
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 70% 20%, #202b36, #080c15 75%);
+  overflow: hidden;
+  box-shadow: 0 20px 70px -35px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.shooter-poster,
+.shooter-board canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+.shooter-board canvas {
+  opacity: 0;
+  touch-action: none;
+  cursor: default;
+}
+.shooter-board canvas:focus-visible {
+  outline-offset: -5px;
+  border-radius: 18px;
+}
+.shooter.is-ready canvas {
+  opacity: 1;
+  cursor: none;
+}
+.shooter.is-ready .shooter-poster {
+  display: none;
+}
+.shooter-hud {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: linear-gradient(#080c15 60%, transparent);
+  pointer-events: none;
+}
+.shooter-hud[hidden],
+.shooter-over[hidden] {
+  display: none;
+}
+.shooter-label {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.shooter-score {
+  display: inline-block;
+  font: 800 22px / 1.3 var(--display);
+  font-variant-numeric: tabular-nums;
+}
+.shooter-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.shooter-shields {
+  text-align: right;
+}
+.shooter-shields output {
+  font-size: 12px;
+  line-height: 2.4;
+  color: var(--accent-text);
+}
+.shooter-over {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #080c15e6;
+  text-align: center;
+}
+.shooter-over h2 {
+  margin: 12px 0;
+  font: 700 32px / 1 var(--display);
+  letter-spacing: -0.03em;
+}
+.shooter-over p {
+  margin: 0 0 26px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.shooter-over button {
+  border: 0;
+  cursor: pointer;
+  min-height: 44px;
+  padding-inline: 18px;
+  font-size: 14px;
+}
+.lost-copy {
+  text-align: center;
+}
+.lost-copy h1 {
+  margin: 0.25em 0 0 0;
+  font: 800 clamp(5rem, 19vw, 7rem) / 0.85 var(--display);
+  letter-spacing: -0.055em;
+  color: var(--accent-text);
+}
+.lost-copy h2 {
+  margin: 15px 0 0;
+  font: 800 24px / 1.1 var(--display);
+  letter-spacing: -0.03em;
+}
+.lost-copy p {
+  margin: 12px 0 18px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.lost-home {
+  margin: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 44px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.lost-home:hover {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+@media (max-height: 750px) and (min-width: 600px) {
+  .shooter {
+    width: 300px;
+  }
+  .lost {
+    padding-block: 20px;
+    gap: 16px;
+  }
+  .lost-copy h1 {
+    font-size: 5rem;
+  }
+}
+@media (max-width: 420px) {
+  .shooter-hud {
+    padding: 12px 14px;
+  }
+  .shooter-name {
+    font-size: 9px;
+  }
+  .lost {
+    gap: 20px;
+    padding-block: 24px;
+  }
+}

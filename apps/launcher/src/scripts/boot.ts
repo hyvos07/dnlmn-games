@@ -55,7 +55,7 @@ if (document.querySelector('[data-grid]')) {
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function loadMotion(): void {
-  if (reduced.matches) return;
+  if (reduced.matches || root.hasAttribute('data-minimal')) return;
   void import('./enhance/motion.ts').then((motion) => motion.start({ setFilterAnimator }));
   const scene = document.querySelector<HTMLElement>('#scene[data-webgl]');
   // Feature-detect without creating a context: the scene owns the only one.
