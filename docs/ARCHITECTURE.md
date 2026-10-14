@@ -162,6 +162,10 @@ Each game's HTML links its own `public/favicon.svg` using the relative `./favico
 
 Typing Fortress uses vanilla TypeScript rules and lifecycle with a game-local OGL renderer, DOM word labels, and anime.js effects ([ADR-013](./DECISIONS.md#adr-013-ogl-battlefield-for-typing-fortress)). Its manifest remains `engine: "vanilla"`; OGL is a rendering dependency. The launcher reads its manifest and captures exactly as for other games. Renderer code stays inside the game and is never imported from the launcher.
 
+### Browser tests
+
+Playwright starts Wrangler against the assembled `dist/`, using bundled Chromium in CI. CI runs one worker to avoid contention between software WebGL renderers and simulated animation frames. For clock-controlled gameplay, install the clock with a fixed date before navigation so all timers and animation frames share it and seeded word selection is repeatable. Advance the clock in bounded steps until the public end-of-run UI appears; keep score, pause, and restart assertions intact.
+
 ## 6. `@games/sdk`
 
 Tiny (target ≤ 5 KB gzipped), zero dependencies, framework-agnostic. Every game uses it.

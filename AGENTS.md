@@ -89,6 +89,8 @@ Dev servers can hide base-path bugs. A change is only verified when:
 
 If you can't run a step (no browser, etc.), say which step you skipped. Don't claim it passed.
 
+Playwright uses one worker in CI so software WebGL rendering does not compete with other tests. Install a fixed browser clock before navigation when testing animation loops, and advance it in bounded steps until the expected UI appears rather than assuming a fixed defeat time.
+
 ## Style
 
 - TypeScript strict, Biome-formatted, `kebab-case.ts` files.

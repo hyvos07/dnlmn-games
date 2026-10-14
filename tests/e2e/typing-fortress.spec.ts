@@ -1,12 +1,13 @@
 import { expect, type Page, test } from '@playwright/test';
-import { trackProblems } from './helpers.ts';
+import { advanceUntilVisible, trackProblems } from './helpers.ts';
 
 const ENEMIES = '.enemy-word[data-word][data-enemy-id]';
 
 /** Freeze the browser clock, not game internals; every action uses the public interface. */
 async function openWatch(page: Page): Promise<string[]> {
   const problems = trackProblems(page);
-  await page.clock.install();
+  const startTime = new Date('2026-01-01T12:00:00Z');
+  await page.clock.install({ time: startTime });
   const response = await page.goto('/typing-fortress/');
   expect(response?.status()).toBe(200);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'menu');
@@ -14,7 +15,7 @@ async function openWatch(page: Page): Promise<string[]> {
   await page.locator('.typing-options summary').click();
   await page.locator('#typing-mode').selectOption('editable');
   await page.locator('.typing-options summary').click();
-  await page.clock.pauseAt(new Date(Date.now() + 10_000));
+  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
   await page.clock.runFor(700);
   return problems;
 }
@@ -118,6 +119,9 @@ test.describe('Typing Fortress physical keyboard play', () => {
     page,
   }) => {
     test.setTimeout(120_000);
+    // Exercise the full siege at a desktop size that is practical for software WebGL in CI.
+    await page.setViewportSize({ width: 800, height: 600 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     const problems = await openWatch(page);
     await page.locator('[data-difficulty="fast-hand"]').click();
     await startWatch(page);
@@ -157,8 +161,7 @@ test.describe('Typing Fortress physical keyboard play', () => {
     );
 
     // Let the public simulation reach defeat naturally; no state injection or test-only hooks.
-    await page.clock.runFor(60_000);
-    await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'over');
+    await advanceUntilVisible(page, page.locator('#stage[data-screen="over"]'));
     await expect(page.locator('#final-score')).not.toHaveText('0');
     await page.clock.runFor(700);
     await page.locator('#again').click();

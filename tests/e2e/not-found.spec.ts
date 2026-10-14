@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { advanceUntilVisible } from './helpers.ts';
 
 test('404 stays plain while home retains its floating background after navigation', async ({
   page,
@@ -66,6 +67,10 @@ test('404 remains usable without JavaScript', async ({ browser, baseURL }) => {
 });
 
 test('space shooter auto-starts, ends, and restarts with reduced motion', async ({ page }) => {
+  test.setTimeout(90_000);
+  const startTime = new Date('2026-01-01T12:00:00Z');
+  // Own requestAnimationFrame/performance before the auto-starting game schedules a frame.
+  await page.clock.install({ time: startTime });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/lost-in-space/');
   await expect(page.locator('header, footer, nav')).toHaveCount(0);
@@ -81,9 +86,8 @@ test('space shooter auto-starts, ends, and restarts with reduced motion', async 
   const title = await page.getByRole('heading', { level: 1, name: '404' }).boundingBox();
   expect(arena && title && title.y > arena.y + arena.height).toBeTruthy();
   await page.locator('[data-shooter-canvas]').focus();
-  await page.clock.install();
-  await page.clock.runFor(45_000);
-  await expect(page.locator('[data-shooter-over]')).toBeVisible();
+  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
+  await advanceUntilVisible(page, page.locator('[data-shooter-over]'));
   await expect(page.locator('[data-shooter-status]')).toContainText('Nice try.');
   await expect(page.getByText('Signal lost', { exact: false })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Nice try.' })).toBeVisible();
