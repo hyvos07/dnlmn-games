@@ -1,5 +1,5 @@
 /**
- * `pnpm thumbnail <slug> [--wait <ms>] [--selector <css>] [--still]`
+ * `pnpm thumbnail <slug> [--wait <ms>] [--selector <css>] [--quality <1-100>] [--still]`
  *
  * Builds the game, serves it at /<slug>/ with `vite preview` and lets it run (attract
  * mode or idle animation) on Playwright's fake clock, so every captured frame is exactly
@@ -30,16 +30,20 @@ const { positionals, values } = parseArgs({
   options: {
     wait: { type: 'string', default: '4000' },
     selector: { type: 'string', default: '[data-thumbnail], canvas' },
+    quality: { type: 'string', default: '70' },
     still: { type: 'boolean', default: false },
   },
 });
 
 const slug = positionals[0];
 if (!slug || !SLUG_PATTERN.test(slug)) {
-  console.error('usage: pnpm thumbnail <slug> [--wait <ms>] [--selector <css>] [--still]');
+  console.error(
+    'usage: pnpm thumbnail <slug> [--wait <ms>] [--selector <css>] [--quality <1-100>] [--still]',
+  );
   process.exit(1);
 }
 const dir = join(import.meta.dirname, '..', 'games', slug);
+const quality = Math.min(100, Math.max(1, Number(values.quality) || 70));
 const configFile = join(dir, 'vite.config.ts');
 if (!existsSync(configFile)) {
   console.error(`no game at games/${slug}/`);
@@ -116,7 +120,7 @@ if (!values.still) {
   );
   const out = join(dir, 'preview.webp');
   const info = await sharp(pngs, { join: { animated: true } })
-    .webp({ quality: 70, effort: 6, loop: 0, delay: 1000 / PREVIEW_FPS, smartSubsample: true })
+    .webp({ quality, effort: 6, loop: 0, delay: 1000 / PREVIEW_FPS, smartSubsample: true })
     .toFile(out);
   console.log(
     `✔ wrote games/${slug}/preview.webp (${PREVIEW_SIZE}px, ${loop.length} frames, ${Math.round(info.size / 1024)} KB)`,

@@ -1,0 +1,21 @@
+{
+  "slug": "tile-rush",
+  "title": "Pixel Rush",
+  "tagline": "Small pixels. Fast fingers.",
+  "description": "Tap the lowest pixel, then keep the board moving. A four-lane reflex game with timed, endless, and practice modes.",
+  "engine": "vanilla",
+  "tags": ["arcade", "casual"],
+  "input": ["keyboard", "mouse", "touch"],
+  "controls": {
+    "keyboard": "D / F / J / K for lanes 1-4. Escape to pause. Repeated key holds do not score.",
+    "mouse": "Click the lowest live target, above the bottom row. Each hit scrolls the board.",
+    "touch": "Tap those pixels to bash them all!"
+  },
+  "orientation": "any",
+  "thumbnail": "thumbnail.png",
+  "thumbnailAlt": "Four lanes of colorful pixel creatures, with a live target above the last tapped dimmed character",
+  "preview": "preview.webp",
+  "status": "published",
+  "addedAt": "2026-10-19",
+  "version": "1.0.0"
+}

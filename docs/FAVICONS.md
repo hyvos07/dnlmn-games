@@ -9,6 +9,7 @@ The launcher and each game have their own drawn SVG identity. Use original vecto
 | Launcher, About, tag pages, and 404 | `public-root/favicon.svg` | Lime arcade controller with coral buttons |
 | Snake | `games/snake/public/favicon.svg` | Lime serpent and coral apple |
 | Typing Fortress | `games/typing-fortress/public/favicon.svg` | Gold battlements with a teal rune |
+| Pixel Rush | `games/tile-rush/public/favicon.svg` | Lime pixel creature and four lanes |
 
 The launcher layout imports the root SVG as a URL with `?url&no-inline`. Astro/Vite serves it in development and emits a cacheable asset for production. Assembly also copies the original to `/favicon.svg` as the conventional root fallback. Edit the source, never either build output.
 

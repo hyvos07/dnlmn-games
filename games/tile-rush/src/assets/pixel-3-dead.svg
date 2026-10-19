@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <title>Cat pixel — dead</title>
+  <!-- One continuous silhouette fill prevents seams between adjoining pixels. -->
+  <path d="M26 26H34V34H66V26H74V42H82V58H66V66H74V74H58V66H42V74H26V66H34V58H18V42H26V26Z" fill="#c9afff" fill-rule="evenodd"/>
+  <path d="m34 49 8 8m0-8-8 8m24-8 8 8m0-8-8 8m-11 9 3-3h4l3 3" fill="none" stroke="#17251a" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>
+

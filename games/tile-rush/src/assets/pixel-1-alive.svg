@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <title>Antenna pixel — alive</title>
+  <!-- One continuous silhouette fill prevents seams between adjoining pixels. -->
+  <path d="M34 26H42V34H58V26H66V42H74V50H82V66H66V58H58V66H42V58H34V66H18V50H26V42H34V26ZM34 66H42V74H34V66ZM58 66H66V74H58V66Z" fill="#c6fa68" fill-rule="evenodd"/>
+  <path d="M34 48h8v8h-8zm24 0h8v8h-8zM46 62h8v3h-8z" fill="#17251a"/>
+  <path d="M34 42h8v3h-8zm8-8h8v3h-8z" fill="#f2ffda"/>
+</svg>
+

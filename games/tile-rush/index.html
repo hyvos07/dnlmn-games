@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c100f" />
+    <meta name="description" content="Tap the lowest pixel, then keep the board moving. A four-lane reflex game with timed, endless, and practice modes." />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Pixel Rush</title>
+  </head>
+  <body>
+    <main id="stage" data-screen="menu">
+      <div class="board-surface">
+        <canvas id="board" width="480" height="800" tabindex="-1" aria-label="Tap the lowest live target, above the bottom row"></canvas>
+        <div class="timer"><span id="time-label">Time</span><output id="time">20.0</output></div>
+      </div>
+      <section class="overlay" id="start" data-overlay aria-labelledby="title">
+        <div class="menu-content">
+          <h1 id="title">Pixel Rush</h1>
+          <p id="description">Tap those pixels to bash them all!</p>
+          <div class="menu-actions">
+            <button class="primary" id="play" type="button">Start</button>
+            <div class="mode-select" id="mode-picker">
+              <input id="mode" type="hidden" value="timed" />
+              <button class="secondary mode-trigger" id="mode-toggle" type="button" aria-label="Game mode: Normal · 20s" aria-haspopup="listbox" aria-expanded="false" aria-controls="mode-options" aria-describedby="mode-description">
+                <span id="mode-label">Normal · 20s</span>
+              </button>
+              <div class="mode-options" id="mode-options" role="listbox" aria-label="Game mode" hidden>
+                <button type="button" role="option" data-value="timed" aria-selected="true" tabindex="-1">Normal · 20s</button>
+                <button type="button" role="option" data-value="endless" aria-selected="false" tabindex="-1">Endless</button>
+                <button type="button" role="option" data-value="practice" aria-selected="false" tabindex="-1">Practice</button>
+              </div>
+            </div>
+            <button class="text-button" id="help" type="button">How to play</button>
+          </div>
+          <p class="mode-note" id="mode-description">One wrong tap ends the run.</p>
+        </div>
+      </section>
+      <section class="overlay" id="results" hidden data-overlay aria-labelledby="result-title">
+        <div class="results-content">
+          <p class="result-reason" id="result-reason">Time's up</p>
+          <h2 id="result-title">One more?</h2>
+          <dl class="result-stats">
+            <div><dt>CPS</dt><dd><output id="final-cps">0.00</output></dd></div>
+            <div><dt>Score</dt><dd><output id="final-score">0</output></dd></div>
+            <div class="best-cps-stat"><dt>Best CPS</dt><dd><output id="best-cps">0.00</output></dd></div>
+          </dl>
+          <p id="new-best" hidden>New best CPS!</p>
+          <div class="result-actions">
+            <button class="primary" id="again" type="button">Again</button>
+            <button class="secondary" id="menu" type="button">Home</button>
+          </div>
+        </div>
+      </section>
+      <div id="run-info" hidden>
+        <button class="finish-button" id="finish-run" type="button">Finish</button>
+        <p class="sr-only" id="live-hint" aria-live="polite"></p>
+      </div>
+      <fieldset class="lane-controls sr-only" aria-label="Keyboard lane controls">
+        <button id="lane-0" type="button" data-lane="0" aria-label="Lane 1, D">D</button>
+        <button id="lane-1" type="button" data-lane="1" aria-label="Lane 2, F">F</button>
+        <button id="lane-2" type="button" data-lane="2" aria-label="Lane 3, J">J</button>
+        <button id="lane-3" type="button" data-lane="3" aria-label="Lane 4, K">K</button>
+      </fieldset>
+      <output class="sr-only" id="score">0</output>
+      <p class="sr-only" id="announcement" role="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
