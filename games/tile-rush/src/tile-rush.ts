@@ -1,3 +1,4 @@
+import { getAccent } from '@games/config/theme';
 import { type Game, initGame } from '@games/sdk';
 import manifest from '../game.json';
 import { Sound } from './audio.ts';
@@ -45,12 +46,15 @@ export class TileRush {
   private readonly ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   private readonly mode = element<HTMLInputElement>('mode');
   private readonly motion = matchMedia('(prefers-reduced-motion: reduce)');
+  private readonly showLane = element<HTMLInputElement>('show-lane');
+  private readonly showTapEffect = element<HTMLInputElement>('show-tap-effect');
   private readonly game: Game;
   private readonly sound: Sound;
   private round = createRound('timed', Math.random, 20, 24);
   private demo = createRound('practice', Math.random, 20, 24);
   private screen: Screen = 'menu';
-  private bestCps = 0;
+  private bestScore = 0;
+  private runBestScore = 0;
   private lastTime = performance.now();
   private demoElapsed = 0;
   private passedTiles: PassedTile[] = [];
@@ -80,6 +84,18 @@ export class TileRush {
     this.game.onUnlock(() => this.sound.unlock());
     this.game.setPlaying(false);
     this.applyAppearance();
+    for (const [input, key] of [
+      [this.showLane, 'show-lane'],
+      [this.showTapEffect, 'show-tap-effect'],
+    ] as const) {
+      input.checked = this.game.storage.get<boolean>(key, true) !== false;
+      input.setAttribute('aria-checked', String(input.checked));
+      input.addEventListener('change', () => {
+        input.setAttribute('aria-checked', String(input.checked));
+        this.game.storage.set(key, input.checked);
+        this.drawBoard();
+      });
+    }
     setupModeSelect(element('mode-picker'));
     this.bindInput();
     this.updateMode();
@@ -109,6 +125,9 @@ export class TileRush {
   }
 
   private applyAppearance(): void {
+    const accent = getAccent();
+    document.documentElement.style.setProperty('--games-accent', accent.accent);
+    document.documentElement.style.setProperty('--games-on-accent', accent.onAccent);
     for (const key of ['accent', 'background', 'panel', 'ink', 'muted'] as const) {
       document.documentElement.style.setProperty(`--${key}`, visuals[key]);
     }
@@ -204,8 +223,8 @@ export class TileRush {
   private updateMode(): void {
     const mode = this.selectedMode();
     element('mode-description').textContent = MODES[mode].description;
-    this.bestCps = this.game.storage.get<number>(`best-cps:${mode}`, 0);
-    if (!Number.isFinite(this.bestCps) || this.bestCps < 0) this.bestCps = 0;
+    this.bestScore = this.game.storage.get<number>(`best:${mode}`, 0);
+    if (!Number.isSafeInteger(this.bestScore) || this.bestScore < 0) this.bestScore = 0;
     this.round = createRound(mode, Math.random, 20, 24);
     this.updateStats();
   }
@@ -227,6 +246,7 @@ export class TileRush {
 
   private start(): void {
     this.sound.unlock();
+    this.runBestScore = this.bestScore;
     this.round = createRound(this.selectedMode(), Math.random, 20, 24);
     this.lastTime = performance.now();
     this.passedTiles = [];
@@ -288,6 +308,10 @@ export class TileRush {
     if (result === 'ignored') return;
     this.sound.play(lane, result === 'miss');
     if (result === 'hit') {
+      if (this.round.score > this.bestScore) {
+        this.bestScore = this.round.score;
+        this.game.storage.set(`best:${this.round.mode}`, this.bestScore);
+      }
       this.passTile(lane, variant);
       this.missLane = -1;
       element('live-hint').textContent =
@@ -313,11 +337,7 @@ export class TileRush {
 
   private finish(): void {
     const cps = clicksPerSecond(this.round);
-    const newBest = cps > this.bestCps;
-    if (cps > this.bestCps) {
-      this.bestCps = cps;
-      this.game.storage.set(`best-cps:${this.round.mode}`, cps);
-    }
+    const newBest = this.round.score > this.runBestScore;
     this.setScreen('over');
     this.updateStats();
     element('final-score').textContent = String(this.round.score);
@@ -335,7 +355,7 @@ export class TileRush {
 
   private updateStats(): void {
     element('score').textContent = String(this.round.score);
-    element('best-cps').textContent = this.bestCps.toFixed(2);
+    element('best-score').textContent = String(this.bestScore);
     element('time-label').textContent = this.round.mode === 'timed' ? 'Time' : 'CPS';
     element('time').textContent =
       this.round.mode === 'timed'
@@ -379,6 +399,8 @@ export class TileRush {
       visuals,
       {
         passedTiles: this.passedTiles,
+        showLane: this.showLane.checked,
+        showTapEffect: this.showTapEffect.checked,
         missLane:
           this.round.phase === 'over' || performance.now() / 1000 - this.missAt < 0.6
             ? this.missLane

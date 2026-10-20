@@ -40,11 +40,11 @@ export interface Visuals {
 }
 
 export const visuals: Visuals = {
-  accent: '#c6fa68',
-  background: '#0c100f',
-  panel: '#141b17',
-  ink: '#f1f6e9',
-  muted: '#a4b0a1',
+  accent: '#8fbfff',
+  background: '#090f1d',
+  panel: '#121e33',
+  ink: '#eaf1ff',
+  muted: '#97a9c4',
   drawTarget(ctx, x, y, size, variant) {
     const sprite = pixelImages[((variant % 4) + 4) % 4];
     if (sprite) ctx.drawImage(sprite, x - size / 2, y - size / 2, size, size);

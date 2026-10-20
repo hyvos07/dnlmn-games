@@ -171,7 +171,7 @@ test('DFJK play reserves F for its lane and ignores a held key repeat', async ({
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'playing');
 });
 
-test('pointer and keyboard hits pulse the tile itself without particles', async ({
+test('pointer and keyboard hits glow then dim the tapped tile without particles', async ({
   page,
   isMobile,
 }) => {
@@ -183,10 +183,11 @@ test('pointer and keyboard hits pulse the tile itself without particles', async 
     const draw = prototype.drawImage;
     prototype.clearRect = function (...args) {
       this.canvas.dataset.sparks = '0';
+      this.canvas.dataset.glow = '0';
       return clear.apply(this, args);
     };
     prototype.fillRect = function (x, y, width, height) {
-      if (width === height && this.globalAlpha < 1) {
+      if (width === height && width > 10 && this.fillStyle === '#203857') {
         this.canvas.dataset.tapAlpha = this.globalAlpha.toFixed(2);
       }
       const styles = getComputedStyle(document.documentElement);
@@ -199,8 +200,9 @@ test('pointer and keyboard hits pulse the tile itself without particles', async 
       return fill.call(this, x, y, width, height);
     };
     prototype.drawImage = function (image: CanvasImageSource, ...coordinates: number[]) {
-      if (this.globalAlpha < 1 && image instanceof HTMLImageElement) {
+      if ((this.globalAlpha < 1 || this.shadowBlur > 0) && image instanceof HTMLImageElement) {
         this.canvas.dataset.completedSprite = image.src;
+        this.canvas.dataset.glow = String(this.shadowBlur);
       }
       return Reflect.apply(draw, this, [image, ...coordinates]);
     };
@@ -209,17 +211,85 @@ test('pointer and keyboard hits pulse the tile itself without particles', async 
   const board = page.locator('#board');
   await hitNext(page, isMobile);
   await expect(board).toHaveAttribute('data-sparks', '0');
-  await expect(board).toHaveAttribute('data-tap-alpha', '0.92');
+  await expect(board).toHaveAttribute('data-tap-alpha', '1.00');
+  expect(Number(await board.getAttribute('data-glow'))).toBeGreaterThan(0);
   await expect(board).toHaveAttribute('data-completed-sprite', /alive/);
   await page.clock.runFor(160);
-  await expect(board).toHaveAttribute('data-tap-alpha', '0.42');
+  expect(Number(await board.getAttribute('data-tap-alpha'))).toBeGreaterThan(0.42);
   await expect(board).toHaveAttribute('data-sparks', '0');
+  await page.clock.runFor(160);
+  await expect(board).toHaveAttribute('data-sparks', '0');
+  await expect(board).toHaveAttribute('data-tap-alpha', '0.42');
+  await expect(board).toHaveAttribute('data-glow', '0');
 
   if (isMobile) await hitNext(page, true);
   else await page.keyboard.press(KEYS[await nextLane(page)] as string);
   await expect(page.locator('#score')).toHaveText('2');
   await expect(board).toHaveAttribute('data-sparks', '0');
-  await expect(board).toHaveAttribute('data-tap-alpha', '0.92');
+  await expect(board).toHaveAttribute('data-tap-alpha', '1.00');
+  expect(Number(await board.getAttribute('data-glow'))).toBeGreaterThan(0);
+  expect(problems).toEqual([]);
+});
+
+test('display switches work independently and persist across reloads', async ({
+  page,
+  isMobile,
+}) => {
+  const problems = await openRush(page);
+  await page.evaluate(() => {
+    const prototype = CanvasRenderingContext2D.prototype;
+    const clear = prototype.clearRect;
+    const fill = prototype.fillRect;
+    const draw = prototype.drawImage;
+    prototype.clearRect = function (...args) {
+      this.canvas.dataset.laneVisible = 'false';
+      this.canvas.dataset.glowVisible = 'false';
+      return clear.apply(this, args);
+    };
+    prototype.fillRect = function (...args) {
+      if (String(this.fillStyle).startsWith('rgba(184, 190, 197,')) {
+        this.canvas.dataset.laneVisible = 'true';
+      }
+      return fill.apply(this, args);
+    };
+    prototype.drawImage = function (image: CanvasImageSource, ...coordinates: number[]) {
+      if (this.shadowBlur > 0) this.canvas.dataset.glowVisible = 'true';
+      return Reflect.apply(draw, this, [image, ...coordinates]);
+    };
+  });
+  const lane = page.getByRole('switch', { name: 'Tap lane', exact: true });
+  const glow = page.getByRole('switch', { name: 'Tap glow', exact: true });
+  await expect(lane).toBeChecked();
+  await expect(glow).toBeChecked();
+  await lane.uncheck();
+  await startRound(page, 'practice');
+  await hitNext(page, isMobile);
+  await expect(page.locator('#board')).toHaveAttribute('data-lane-visible', 'false');
+  await expect(page.locator('#board')).toHaveAttribute('data-glow-visible', 'true');
+  await page.locator('#finish-run').click();
+  await page.locator('#menu').click();
+  await lane.check();
+  await glow.uncheck();
+  await startRound(page, 'practice');
+  await hitNext(page, isMobile);
+  await expect(page.locator('#board')).toHaveAttribute('data-lane-visible', 'true');
+  await expect(page.locator('#board')).toHaveAttribute('data-glow-visible', 'false');
+  await page.reload();
+  await expect(lane).toBeChecked();
+  await expect(glow).not.toBeChecked();
+  await lane.uncheck();
+  await page.reload();
+  await expect(lane).not.toBeChecked();
+  await expect(glow).not.toBeChecked();
+  await expect(page.locator('#play')).toHaveCSS('background-color', 'rgb(143, 191, 255)');
+  await startRound(page);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  const pause = page.getByRole('dialog', { name: 'Paused', exact: true });
+  await expect(pause).toBeVisible();
+  await expect(pause.getByRole('button', { name: 'Resume', exact: true })).toHaveCSS(
+    'background-color',
+    'rgb(198, 255, 61)',
+  );
   expect(problems).toEqual([]);
 });
 
@@ -297,7 +367,10 @@ test('pause freezes the clock and ignores lane keys until resumed', async ({ pag
   await expect(page.locator('#time')).not.toHaveText(time);
 });
 
-test('best CPS persists without being replaced by an early failure', async ({ page, isMobile }) => {
+test('best score persists by mode while CPS remains a per-run average', async ({
+  page,
+  isMobile,
+}) => {
   await openRush(page);
   await startRound(page);
   for (let hits = 0; hits < 3; hits++) await hitNext(page, isMobile);
@@ -305,15 +378,15 @@ test('best CPS persists without being replaced by an early failure', async ({ pa
   const wrong = ((await nextLane(page)) + 1) % 4;
   await tapLane(page, wrong, isMobile);
   await expectMissThenResults(page);
-  await expect(page.locator('#best')).toHaveCount(0);
+  await expect(page.locator('#best-cps')).toHaveCount(0);
   await expect(page.locator('#new-best')).toBeVisible();
   const cps = await page.locator('#final-cps').innerText();
   expect(Number(cps)).toBeCloseTo(2.4, 1);
-  await expect(page.locator('#best-cps')).toHaveText(cps);
+  await expect(page.locator('#best-score')).toHaveText('3');
   await page.reload();
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'menu');
   await expect(page.locator('#score')).toHaveText('0');
-  await expect(page.locator('#best-cps')).toHaveText(cps);
+  await expect(page.locator('#best-score')).toHaveText('3');
   await startRound(page);
   await hitNext(page, isMobile);
   await advanceTime(page, 999);
@@ -321,20 +394,21 @@ test('best CPS persists without being replaced by an early failure', async ({ pa
   await expectMissThenResults(page);
   await expect(page.locator('#final-cps')).toHaveText('0.00');
   await expect(page.locator('#new-best')).toBeHidden();
-  await expect(page.locator('#best-cps')).toHaveText(cps);
+  await expect(page.locator('#best-score')).toHaveText('3');
   await page.locator('#menu').click();
   await startRound(page, 'endless');
-  await expect(page.locator('#best-cps')).toHaveText('0.00');
+  await expect(page.locator('#best-score')).toHaveText('0');
   await hitNext(page, isMobile);
   await expect(page.locator('#time')).toHaveText('0.00');
   await advanceTime(page, 1250);
   // The live display uses the last animation frame; Finish samples the exact clock.
   expect(Number(await page.locator('#time').innerText())).toBeCloseTo(0.8, 1);
   await page.locator('#finish-run').click();
-  await expect(page.locator('#best-cps')).toHaveText('0.80');
+  await expect(page.locator('#best-score')).toHaveText('1');
+  await expect(page.locator('#final-cps')).toHaveText('0.80');
   await page.reload();
   await startRound(page, 'endless');
-  await expect(page.locator('#best-cps')).toHaveText('0.80');
+  await expect(page.locator('#best-score')).toHaveText('1');
 });
 
 test('practice mistakes preserve the target and allow the next correct tap', async ({

@@ -6,19 +6,33 @@ import type { Visuals } from './visuals.ts';
 function draw(
   slideRows: number,
   reducedMotion = false,
-  feedback: { missLane?: number; missAge?: number; missRow?: number; tapAge?: number } = {},
+  feedback: {
+    missLane?: number;
+    missAge?: number;
+    missRow?: number;
+    tapAge?: number;
+    showLane?: boolean;
+    showTapEffect?: boolean;
+  } = {},
 ) {
   const alphas: { dead: boolean; alpha: number }[] = [];
-  const fills: { color: string | CanvasGradient | CanvasPattern; alpha: number; y: number }[] = [];
+  const glows: number[] = [];
+  const fills: {
+    color: string | CanvasGradient | CanvasPattern;
+    alpha: number;
+    x: number;
+    y: number;
+  }[] = [];
   const drawTarget = vi.fn((ctx: CanvasRenderingContext2D, ...args: unknown[]) => {
     alphas.push({ dead: Boolean(args[4]), alpha: ctx.globalAlpha });
+    if (args[4]) glows.push(ctx.shadowBlur);
   });
   const savedAlpha: number[] = [];
   const ctx = {
     globalAlpha: 1,
     clearRect: vi.fn(),
-    fillRect(this: CanvasRenderingContext2D, _x: number, y: number) {
-      fills.push({ color: this.fillStyle, alpha: this.globalAlpha, y });
+    fillRect(this: CanvasRenderingContext2D, x: number, y: number) {
+      fills.push({ color: this.fillStyle, alpha: this.globalAlpha, x, y });
     },
     save(this: CanvasRenderingContext2D) {
       savedAlpha.push(this.globalAlpha);
@@ -34,9 +48,9 @@ function draw(
     stroke: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
   const visuals = {
-    background: '#0c100f',
-    accent: '#c6fa68',
-    ink: '#f1f6e9',
+    background: '#090f1d',
+    accent: '#8fbfff',
+    ink: '#eaf1ff',
     drawTarget,
   } as unknown as Visuals;
   renderBoard(
@@ -51,13 +65,15 @@ function draw(
         { lane: 1, variant: 1, distance: 1, age: feedback.tapAge ?? 1 },
       ],
       slideRows,
+      showLane: feedback.showLane,
+      showTapEffect: feedback.showTapEffect,
       reducedMotion,
       missLane: feedback.missLane ?? -1,
       missAge: feedback.missAge,
       missRow: feedback.missRow,
     },
   );
-  return { drawTarget, ctx, alphas, fills };
+  return { drawTarget, ctx, alphas, fills, glows };
 }
 
 describe('tap-and-scroll rendering', () => {
@@ -95,6 +111,7 @@ describe('tap-and-scroll rendering', () => {
     expect(start.fills.find((fill) => fill.color === '#d35b5b')).toEqual({
       color: '#d35b5b',
       alpha: 1,
+      x: 300,
       y: 700,
     });
     expect(trough.fills.find((fill) => fill.color === '#d35b5b')?.alpha).toBe(0);
@@ -102,17 +119,35 @@ describe('tap-and-scroll rendering', () => {
     expect(start.ctx.stroke).toHaveBeenCalledTimes(1);
   });
 
-  it('pulses the completed tile itself before settling to dimmed, without particles', () => {
+  it('glows on contact, then settles to the dimmed completed state', () => {
     const alpha = (age: number, reduced = false) =>
       draw(0, reduced, { tapAge: age }).alphas.find((sprite) => sprite.dead)?.alpha ?? 0;
-    expect(alpha(0)).toBeCloseTo(0.92);
+    expect(alpha(0)).toBe(1);
+    expect(alpha(0.04)).toBe(1);
     expect(alpha(0.07)).toBeGreaterThan(0.42);
     expect(alpha(0.07)).toBeLessThan(alpha(0));
-    expect(alpha(0.15)).toBe(0.42);
+    expect(alpha(0.3)).toBe(0.42);
     expect(alpha(0, true)).toBe(0.42);
-    const particles = draw(0, false, { tapAge: 0 }).fills.filter(
-      (fill) => fill.color === '#c6fa68' || fill.color === '#f1f6e9',
-    );
-    expect(particles).toHaveLength(0);
+    expect(draw(0, false, { tapAge: 0 }).glows[0]).toBeGreaterThan(0);
+    expect(draw(0, false, { tapAge: 0.3 }).glows[0]).toBe(0);
+    expect(draw(0, true, { tapAge: 0 }).glows[0]).toBe(0);
+  });
+
+  it('keeps the tapping band fixed while tiles scroll through it', () => {
+    const band = (slide: number) => draw(slide).fills.find((fill) => fill.color === '#b8bec525');
+    expect(band(0)?.y).toBe(600);
+    expect(band(1.5)).toEqual(band(0));
+  });
+
+  it('switches the tap lane and glow independently while keeping completed tiles dimmed', () => {
+    const laneOff = draw(0, false, { tapAge: 0, showLane: false });
+    expect(
+      laneOff.fills.some((fill) => fill.color === '#b8bec525' || fill.color === '#b8bec55a'),
+    ).toBe(false);
+    expect(laneOff.glows[0]).toBeGreaterThan(0);
+    const glowOff = draw(0, false, { tapAge: 0, showTapEffect: false });
+    expect(glowOff.fills.some((fill) => fill.color === '#b8bec525')).toBe(true);
+    expect(glowOff.glows[0]).toBe(0);
+    expect(glowOff.alphas.find((sprite) => sprite.dead)?.alpha).toBe(0.42);
   });
 });

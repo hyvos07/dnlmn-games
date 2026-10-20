@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0c100f" />
+    <meta name="theme-color" content="#090f1d" />
     <meta name="description" content="Tap the lowest pixel, then keep the board moving. A four-lane reflex game with timed, endless, and practice modes." />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>Pixel Rush</title>
@@ -31,6 +31,18 @@
                 <button type="button" role="option" data-value="practice" aria-selected="false" tabindex="-1">Practice</button>
               </div>
             </div>
+            <fieldset class="display-options" aria-label="Display options">
+              <label class="display-option" for="show-lane">
+                <span>Tap lane</span>
+                <input id="show-lane" type="checkbox" role="switch" aria-checked="true" checked />
+                <span class="option-switch" aria-hidden="true"></span>
+              </label>
+              <label class="display-option" for="show-tap-effect">
+                <span>Tap glow</span>
+                <input id="show-tap-effect" type="checkbox" role="switch" aria-checked="true" checked />
+                <span class="option-switch" aria-hidden="true"></span>
+              </label>
+            </fieldset>
             <button class="text-button" id="help" type="button">How to play</button>
           </div>
           <p class="mode-note" id="mode-description">One wrong tap ends the run.</p>
@@ -43,9 +55,9 @@
           <dl class="result-stats">
             <div><dt>CPS</dt><dd><output id="final-cps">0.00</output></dd></div>
             <div><dt>Score</dt><dd><output id="final-score">0</output></dd></div>
-            <div class="best-cps-stat"><dt>Best CPS</dt><dd><output id="best-cps">0.00</output></dd></div>
+            <div class="best-score-stat"><dt>Best Score</dt><dd><output id="best-score">0</output></dd></div>
           </dl>
-          <p id="new-best" hidden>New best CPS!</p>
+          <p id="new-best" hidden>New best score!</p>
           <div class="result-actions">
             <button class="primary" id="again" type="button">Again</button>
             <button class="secondary" id="menu" type="button">Home</button>

@@ -20,6 +20,8 @@ export interface PassedTile {
 }
 
 interface Effects {
+  showLane?: boolean;
+  showTapEffect?: boolean;
   passedTiles: readonly PassedTile[];
   missLane: number;
   missRow?: number;
@@ -57,10 +59,12 @@ export function renderBoard(
     ctx.fillRect(lane * laneWidth, 0, laneWidth, height);
   }
 
-  // Neutral gray distinguishes the tapping row from the green target cells.
+  // Neutral gray distinguishes the tapping row from the blue target cells.
   const targetY = bottomRow;
-  ctx.fillStyle = '#b8bec525';
-  ctx.fillRect(0, targetY, width, rowHeight);
+  if (effects.showLane !== false) {
+    ctx.fillStyle = '#b8bec525';
+    ctx.fillRect(0, targetY, width, rowHeight);
+  }
 
   for (let index = round.rows.length - 1; index >= 0; index--) {
     const row = round.rows[index];
@@ -68,7 +72,7 @@ export function renderBoard(
     const y = bottomRow - index * rowHeight + offset;
     if (y + rowHeight < 0 || y > height) continue;
     const x = row.lane * laneWidth;
-    ctx.fillStyle = '#293e25';
+    ctx.fillStyle = '#203857';
     ctx.fillRect(x, y, laneWidth, rowHeight);
     visuals.drawTarget(
       ctx,
@@ -86,11 +90,25 @@ export function renderBoard(
     if (y >= height || y + rowHeight <= 0) continue;
     const x = tile.lane * laneWidth;
     ctx.save();
-    const tapStrength = effects.reducedMotion ? 0 : (1 - Math.min(1, (tile.age ?? 1) / 0.14)) ** 2;
-    // The cell briefly brightens on press, then settles into its completed state.
-    ctx.globalAlpha *= 0.42 + tapStrength * 0.5;
-    ctx.fillStyle = '#293e25';
+    const tapStrength =
+      effects.reducedMotion || effects.showTapEffect === false
+        ? 0
+        : 1 - Math.min(1, Math.max(0, ((tile.age ?? 1) - 0.045) / 0.235));
+    // Hold a bright hit briefly, then fade the cell and creature to their completed state.
+    ctx.globalAlpha *= 0.42 + tapStrength * 0.58;
+    ctx.fillStyle = '#203857';
     ctx.fillRect(x, y, laneWidth, rowHeight);
+    if (tapStrength > 0) {
+      ctx.save();
+      ctx.globalAlpha *= tapStrength * 0.45;
+      ctx.fillStyle = visuals.accent;
+      ctx.shadowColor = visuals.accent;
+      ctx.shadowBlur = laneWidth * 0.18 * tapStrength;
+      ctx.fillRect(x + 1, y + 1, laneWidth - 2, rowHeight - 2);
+      ctx.restore();
+    }
+    ctx.shadowColor = visuals.accent;
+    ctx.shadowBlur = laneWidth * 0.12 * tapStrength;
     visuals.drawTarget(
       ctx,
       x + laneWidth / 2,
@@ -103,7 +121,7 @@ export function renderBoard(
   }
 
   // A single shared grid, without individual cards, frames or keyboard furniture.
-  ctx.strokeStyle = '#c7dfbb18';
+  ctx.strokeStyle = '#acc8ef18';
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let lane = 1; lane < 4; lane++) {
@@ -119,9 +137,11 @@ export function renderBoard(
   ctx.stroke();
 
   // Keep both edges legible over empty and occupied cells.
-  ctx.fillStyle = '#b8bec55a';
-  ctx.fillRect(0, targetY, width, 1);
-  ctx.fillRect(0, targetY + rowHeight - 1, width, 1);
+  if (effects.showLane !== false) {
+    ctx.fillStyle = '#b8bec55a';
+    ctx.fillRect(0, targetY, width, 1);
+    ctx.fillRect(0, targetY + rowHeight - 1, width, 1);
+  }
 
   if (effects.missLane >= 0) {
     const x = effects.missLane * laneWidth;
