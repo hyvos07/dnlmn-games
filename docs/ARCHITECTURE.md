@@ -152,7 +152,7 @@ export default defineGameConfig(import.meta.dirname);
 
 Each game's HTML links its own `public/favicon.svg` using the relative `./favicon.svg`; Vite applies the base once in standalone development, the combined Astro server, and production. The launcher imports `public-root/favicon.svg` as a URL in `Base.astro`, so it is also served in Astro development; assembly retains the conventional root fallback. Artwork and future-game conventions are in [FAVICONS.md](./FAVICONS.md).
 
-- `pnpm dev` uses the normal pnpm workspace script to run Astro on port 4321. The dev-only Vite plugin in `scripts/lib/dev-games.ts` mounts each game's independent Vite middleware at `/<slug>/`, including drafts. All HTTP requests and HMR websockets share Astro's server: no proxy, upstream ports, or separate game processes. Game configs and production bundles remain independent.
+- `pnpm dev` uses the normal pnpm workspace script to run Astro on port 4321. The dev-only Vite plugin in `scripts/lib/dev-games.ts` mounts each game's independent Vite middleware at `/<slug>/`, including drafts. All HTTP requests and HMR websockets share Astro's server: no proxy, upstream ports, or separate game processes. Game configs and production bundles remain independent. Games added after the dev server starts are discovered and mounted on their first request, without restarting; concurrent requests share one game pipeline and HMR socket.
 - `pnpm dev:launcher` is an alias for the same Astro server, including game routes.
 - Game middleware runs before Astro's page guards, so extensionless Vite modules such as `/<slug>/@vite/client` are served without Astro requiring a trailing slash. Bare game paths redirect to `/<slug>/`.
 - `pnpm dev:game <slug>` runs only that game's Vite server at `http://localhost:4321/<slug>/`.
@@ -162,9 +162,13 @@ Each game's HTML links its own `public/favicon.svg` using the relative `./favico
 
 Typing Fortress uses vanilla TypeScript rules and lifecycle with a game-local OGL renderer, DOM word labels, and anime.js effects ([ADR-013](./DECISIONS.md#adr-013-ogl-battlefield-for-typing-fortress)). Its manifest remains `engine: "vanilla"`; OGL is a rendering dependency. The launcher reads its manifest and captures exactly as for other games. Renderer code stays inside the game and is never imported from the launcher.
 
+### DOM puzzle rendering
+
+2048 at `/merge-2048/` uses a game-local TypeScript adaptation of Gabriele Cirulli's MIT-licensed grid, tile and game-manager code. Original pinned sources are retained as test fixtures for differential checks; the upstream license ships with the game. Anime.js handles tile effects. A semantic keyboard-controlled grid provides cell labels; the SDK owns persistence and lifecycle. Game smoke tests accept either a canvas or a DOM `[data-board]` playfield.
+
 ### Browser tests
 
-Playwright starts Wrangler against the assembled `dist/`, using bundled Chromium in CI. CI runs one worker to avoid contention between software WebGL renderers and simulated animation frames. For clock-controlled gameplay, install the clock with a fixed date before navigation so all timers and animation frames share it and seeded word selection is repeatable. Advance the clock in bounded steps until the public end-of-run UI appears; keep score, pause, and restart assertions intact.
+Playwright starts Wrangler against the assembled `dist/`, using bundled Chromium in CI. Local and CI runs default to one worker to avoid contention between software WebGL renderers and simulated animation frames. Use `--workers` explicitly only for targeted runs. For clock-controlled gameplay, install and pause the clock at a fixed date before navigation so slow loading cannot overrun a future pause timestamp, all timers and animation frames share it, and seeded word selection is repeatable. Advance the clock in bounded steps until the public end-of-run UI appears; keep score, pause, and restart assertions intact.
 
 The long Typing Fortress defeat scenario advances with repeated 50 ms `clock.fastForward` steps, simulating 20 fps and retaining the game's 50 ms frame-delta limit. A large jump would advance the simulation by only one clamped frame, while `runFor` replays every intervening frame and is expensive with software WebGL. Other timing-sensitive scenarios retain `runFor` to exercise all intermediate frames and timers.
 
@@ -189,7 +193,7 @@ game.exitToMenu();   // navigates to '/'
 ```
 
 `initGame` does the following:
-- Mounts the **HUD**: a small corner overlay with Menu, Fullscreen, Mute, Pause, and "?" (description and controls from the manifest). Keyboard: `Esc` pauses, `F` toggles fullscreen, `M` toggles mute. Games can suppress keys they need.
+- Mounts the **HUD**: a small corner overlay with Menu, Fullscreen, Mute, and "?" (description and controls from the manifest). Keyboard: `F` toggles fullscreen, `M` toggles mute. Games can suppress keys they need. Pause UI belongs to games; `platformPause: true` explicitly adds the shared Pause button, overlay and `Esc` shortcut. Without it, hidden-tab pauses resume on return and orientation pauses resume when corrected; explicit game-owned pauses remain paused.
 - Wires `visibilitychange` to `onPause` and `onResume`.
 - Shows a rotate prompt if `orientation` doesn't match on touch devices.
 - Sets mobile-friendly defaults: prevents pull-to-refresh, double-tap zoom, and context menu on the game canvas.
@@ -204,8 +208,9 @@ The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or g
 - `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, copies a game's preview clip to `/thumbs/<slug>-preview.webp`, and a basic OG card per game to `/og/<slug>.png` (plus `/og/home.png`). Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
 - Theme: dark only. Accent tokens come from `@games/config/theme` (`ACCENT`) and are inlined as CSS variables.
 - Fonts (Bricolage Grotesque 800, Instrument Sans variable, latin subset) are self-hosted, preloaded and use `font-display: optional`, so a late font never shifts layout.
-- The tag filter is a small vanilla script or Astro island. There's no framework runtime on the launcher unless an ADR adds one.
-- Filter state lives on `<html data-tag="…" data-touch>`, and page-generated CSS hides non-matching cards. A tiny inline head script applies `?tag=`/`?touch=1` before first paint (no layout shift). `scripts/boot.ts` flips the attributes on chip clicks and syncs the URL with `pushState`. Without JS, chips are links to the static `/tag/<tag>/` pages.
+- Categories appear in fixed order: All, Mobile, Desktop, Classic, Special. Mobile is derived from touch input; Desktop from keyboard, mouse, or gamepad input. Games tagged `classic` appear in Classic; all others appear in Special. Cards show these categories, with no touch switch or touch icon. Manifest genre tags and game controls remain available for metadata and the SDK.
+- The category filter is a small vanilla script. There's no framework runtime on the launcher unless an ADR adds one.
+- Filter state lives on `<html data-tag="…">`, and page-generated CSS hides non-matching cards. A tiny inline head script applies `?tag=` before first paint (no layout shift). `scripts/boot.ts` flips the attributes on chip clicks and syncs the URL with `pushState`. Without JS, chips are links to the static `/tag/<tag>/` pages.
 
 ### Critical path vs enhancement ([ADR-009](./DECISIONS.md#adr-009-motion-rich-launcher))
 

@@ -50,9 +50,9 @@ const fullTitle = title ? `${title} · Games by dnlmn` : 'Games by dnlmn';
 const a = getAccent();
 const tokens = `:root{--accent:${a.accent};--on-accent:${a.onAccent};--accent-text-dark:${a.accentTextDark};--accent-text-light:${a.accentTextLight};--secondary:${a.secondary}}`;
 const fonts = `@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:800;font-display:optional;src:url(${displayFont}) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:optional;src:url(${sansFont}) format("woff2")}`;
-// Runs before first paint: marks JS as available and applies ?tag= / ?touch=1 so a
+// Runs before first paint: marks JS as available and applies ?tag= so a
 // filtered page never renders unfiltered first (CLS 0).
-const headScript = `(function(d){d.classList.add('js');try{var q=new URLSearchParams(location.search),t=q.get('tag');if(t&&${JSON.stringify(tags)}.indexOf(t)>-1)d.setAttribute('data-tag',t);if(q.get('touch')==='1')d.setAttribute('data-touch','')}catch(e){}})(document.documentElement)`;
+const headScript = `(function(d){d.classList.add('js');try{var q=new URLSearchParams(location.search),t=q.get('tag');if(t&&${JSON.stringify(tags)}.indexOf(t)>-1)d.setAttribute('data-tag',t)}catch(e){}})(document.documentElement)`;
 ---
 
 <!doctype html>

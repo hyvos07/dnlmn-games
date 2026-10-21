@@ -26,7 +26,8 @@ Non-negotiable rules for this repo. They apply to humans and AI agents equally. 
 - **MUST**: Persist data only via `game.storage`, never `localStorage` directly.
 - **MUST**: Respect `game.muted` and implement `onPause` and `onResume`.
 - **MUST**: No audio before the first user gesture. Show a start screen.
-- **SHOULD**: Don't bind `Esc`, `F`, or `M` unless the game passes `reservedKeys` to override the HUD.
+- **SHOULD**: Pause controls belong to each game. The shared pause button, overlay and `Esc` shortcut are disabled by default; use `platformPause: true` only when explicitly wanted.
+- **SHOULD**: Don't bind `F` or `M` (or `Esc` when platform pause is enabled) unless the game passes `reservedKeys` to override the HUD.
 
 ## 4. Performance budgets
 

@@ -4,7 +4,7 @@ import { getGames, label, tagCounts } from '../lib/games.ts';
 import ComingSoon from './ComingSoon.astro';
 import GameCard from './GameCard.astro';
 import Hero from './Hero.astro';
-import MergePeek from './peeks/MergePeek.astro';
+import ManiaPeek from './peeks/ManiaPeek.astro';
 import TagFilter from './TagFilter.astro';
 
 interface Props {
@@ -16,7 +16,7 @@ const games = await getGames();
 const tags = tagCounts(games);
 const total = games.length;
 
-// Filtering is pure CSS keyed off <html data-tag> / [data-touch], so it works before
+// Filtering is pure CSS keyed off <html data-tag>, so it works before
 // JS runs (and without JS on the /tag/ pages). JS only flips the attributes.
 const tagList = tags.map((t) => t.tag);
 const hide = tagList.map((t) => `html[data-tag="${t}"] .card-item:not([data-tags~="${t}"])`);
@@ -26,7 +26,6 @@ const on = [
 ];
 const css = [
   hide.length ? `${hide.join(',')}{display:none}` : '',
-  'html[data-touch] .card-item:not([data-touch]){display:none}',
   `${on.join(',')}{background:var(--fg);border-color:var(--fg);color:var(--bg)}`,
   `${on.map((s) => `${s} .chip-n`).join(',')}{background:color-mix(in srgb,var(--bg) 18%,transparent)}`,
 ].join('');
@@ -45,16 +44,16 @@ const css = [
   <section class="section wrap" id="games" data-section="grid" aria-labelledby="games-title">
     <header class="section-head">
       <h2 id="games-title">The games</h2>
-      <button class="toggle" type="button" data-touch-toggle data-js-only aria-pressed="false">
-        <span class="switch" aria-hidden="true"></span>
-        Touch-friendly only
-      </button>
     </header>
     <TagFilter tags={tags} total={total} active={tag} />
     <ol class="grid" data-grid>
       {games.map((game) => <GameCard game={game} />)}
-      <ComingSoon kind="merge" title="2048" tagline="Slide, merge, reach 2048. Made for thumbs.">
-        <MergePeek />
+      <ComingSoon
+        kind="mania"
+        title="Auto Mania"
+        tagline="(人マニア) Turn your MP3/WAV into auto-generated rhythm game maps"
+      >
+        <ManiaPeek />
       </ComingSoon>
     </ol>
     <p class="empty" data-empty hidden>

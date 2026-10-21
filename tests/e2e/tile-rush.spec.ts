@@ -7,11 +7,12 @@ const START_TIME = new Date('2026-01-01T12:00:00Z');
 async function openRush(page: Page): Promise<string[]> {
   const problems = trackProblems(page);
   await page.clock.install({ time: START_TIME });
+  // Freeze before navigation so slow loading cannot overrun the pause timestamp.
+  await page.clock.pauseAt(new Date(START_TIME.getTime() + 10_000));
   const response = await page.goto('/tile-rush/');
   expect(response?.status()).toBe(200);
   await expect(page).toHaveTitle('Pixel Rush');
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'menu');
-  await page.clock.pauseAt(new Date(START_TIME.getTime() + 10_000));
   return problems;
 }
 
@@ -283,13 +284,7 @@ test('display switches work independently and persist across reloads', async ({
   await expect(glow).not.toBeChecked();
   await expect(page.locator('#play')).toHaveCSS('background-color', 'rgb(143, 191, 255)');
   await startRound(page);
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  const pause = page.getByRole('dialog', { name: 'Paused', exact: true });
-  await expect(pause).toBeVisible();
-  await expect(pause.getByRole('button', { name: 'Resume', exact: true })).toHaveCSS(
-    'background-color',
-    'rgb(198, 255, 61)',
-  );
+  await expect(page.getByRole('button', { name: 'Pause', exact: true })).toHaveCount(0);
   expect(problems).toEqual([]);
 });
 
@@ -343,26 +338,36 @@ test('a timed round ends after twenty seconds and can restart or return to its m
   await expectMissThenResults(page);
 });
 
-test('pause freezes the clock and ignores lane keys until resumed', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'This scenario checks physical lane keys while the pause dialog is open.');
+test('hidden tabs freeze the clock and resume without platform pause controls', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'This scenario checks physical lane keys while the tab is hidden.');
   await openRush(page);
   await startRound(page);
   await hitNext(page);
   await advanceTime(page, 1000);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Paused', exact: true })).toBeVisible();
+  await hitNext(page);
+  await expect(page.locator('#score')).toHaveText('2');
+  const visibility = (state: string) =>
+    page.evaluate((value) => {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, value });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, state);
+  await visibility('hidden');
+  await expect(page.getByRole('dialog', { name: 'Paused', exact: true })).toHaveCount(0);
   const time = await page.locator('#time').innerText();
   const lane = await nextLane(page);
   await page.keyboard.press(KEYS[lane] as string);
   await advanceTime(page, 25_000);
-  await expect(page.locator('#score')).toHaveText('1');
+  await expect(page.locator('#score')).toHaveText('2');
   await expect(page.locator('#time')).toHaveText(time);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'playing');
 
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Paused', exact: true })).toBeHidden();
+  await visibility('visible');
   await page.keyboard.press(KEYS[lane] as string);
-  await expect(page.locator('#score')).toHaveText('2');
+  await expect(page.locator('#score')).toHaveText('3');
   await advanceTime(page, 1000);
   await expect(page.locator('#time')).not.toHaveText(time);
 });

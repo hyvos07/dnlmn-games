@@ -6,7 +6,7 @@ import { type Connect, createServer } from 'vite';
 import { expect, it } from 'vitest';
 import { devGames } from './dev-games.ts';
 
-it('serves two isolated games and their HMR sockets on the launcher listener', async () => {
+it('serves isolated games and discovers newly added games with HMR without restarting', async () => {
   const gamesDir = await mkdtemp(join(tmpdir(), 'dev-games-'));
   const configModule = pathToFileURL(resolve('packages/config/src/vite.ts')).href;
   const sockets: WebSocket[] = [];
@@ -43,7 +43,7 @@ it('serves two isolated games and their HMR sockets on the launcher listener', a
   });
   try {
     // Draft fixtures exercise automatic discovery without depending on published games.
-    for (const slug of ['first-game', 'second-game']) {
+    const writeGame = async (slug: string) => {
       const dir = join(gamesDir, slug);
       await mkdir(dir);
       await writeFile(join(dir, 'package.json'), '{"type":"module"}');
@@ -74,7 +74,8 @@ export default defineGameConfig(import.meta.dirname, { logLevel: 'silent' });`,
         `export const game = '${slug}';
 if (import.meta.hot) import.meta.hot.accept();`,
       );
-    }
+    };
+    for (const slug of ['first-game', 'second-game']) await writeGame(slug);
     // configureServer runs during createServer, so discover fixtures on restart.
     await launcher.restart();
     const address = launcher.httpServer?.address();
@@ -83,7 +84,15 @@ if (import.meta.hot) import.meta.hot.accept();`,
     expect(await (await fetch(`${origin}/`)).text()).toBe('launcher');
     expect((await fetch(`${origin}/first-games/`)).status).toBe(404);
 
-    for (const slug of ['first-game', 'second-game']) {
+    // A game scaffolded after startup must work without another launcher restart.
+    expect((await fetch(`${origin}/late-game/`)).status).toBe(404);
+    await writeGame('late-game');
+    const simultaneous = await Promise.all(
+      Array.from({ length: 4 }, () => fetch(`${origin}/late-game/`)),
+    );
+    expect(simultaneous.map((response) => response.status)).toEqual([200, 200, 200, 200]);
+
+    for (const slug of ['first-game', 'second-game', 'late-game']) {
       const redirect = await fetch(`${origin}/${slug}`, { redirect: 'manual' });
       expect(redirect.status).toBe(302);
       expect(redirect.headers.get('location')).toBe(`/${slug}/`);

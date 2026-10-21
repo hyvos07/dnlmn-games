@@ -8,6 +8,8 @@ async function openWatch(page: Page): Promise<string[]> {
   const problems = trackProblems(page);
   const startTime = new Date('2026-01-01T12:00:00Z');
   await page.clock.install({ time: startTime });
+  // Freeze before navigation so slow loading cannot overrun the pause timestamp.
+  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
   const response = await page.goto('/typing-fortress/');
   expect(response?.status()).toBe(200);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'menu');
@@ -15,7 +17,6 @@ async function openWatch(page: Page): Promise<string[]> {
   await page.locator('.typing-options summary').click();
   await page.locator('#typing-mode').selectOption('editable');
   await page.locator('.typing-options summary').click();
-  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
   await page.clock.runFor(700);
   return problems;
 }

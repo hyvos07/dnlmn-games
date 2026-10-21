@@ -77,10 +77,11 @@ async function steer(page: Page, moves: Dir[]): Promise<void> {
 }
 
 async function openWithFakeClock(page: Page): Promise<void> {
-  await page.clock.install();
+  const startTime = new Date('2026-01-01T12:00:00Z');
+  await page.clock.install({ time: startTime });
+  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
   await page.goto(`/snake/?seed=${SEED}`);
   await expect(page.locator('#start')).toBeVisible();
-  await page.clock.pauseAt(new Date(Date.now() + 10_000));
   await page.clock.runFor(FRAME_MS * 3); // flush the stale first frame
 }
 

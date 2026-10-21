@@ -6,7 +6,7 @@ export interface Game extends GameManifest {
   number: number;
   href: string;
   alt: string;
-  touch: boolean;
+  categories: string[];
   /** URL of the looping card clip (ADR-011), if the game ships one. */
   previewSrc?: string;
 }
@@ -23,19 +23,29 @@ export async function getGames(): Promise<Game[]> {
     number: i + 1,
     href: `/${game.slug}/`,
     alt: thumbnailAlt(game),
-    touch: game.input.includes('touch'),
+    categories: gameCategories(game),
     previewSrc: game.preview ? `/thumbs/${game.slug}-preview.webp` : undefined,
   }));
 }
 
-/** Tags used by at least one published game, with counts, most used first. */
+/** Launcher categories stay in this order, including categories with no games yet. */
+export const CATEGORIES = ['mobile', 'desktop', 'classic', 'special'] as const;
+
+export function gameCategories(game: Pick<GameManifest, 'input' | 'tags'>): string[] {
+  return [
+    ...(game.input.includes('touch') ? ['mobile'] : []),
+    ...(game.input.some((input) => input === 'keyboard' || input === 'mouse' || input === 'gamepad')
+      ? ['desktop']
+      : []),
+    game.tags.includes('classic') ? 'classic' : 'special',
+  ];
+}
+
 export function tagCounts(games: readonly Game[]): Array<{ tag: string; count: number }> {
-  const counts = new Map<string, number>();
-  for (const game of games)
-    for (const tag of game.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-  return [...counts]
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+  return CATEGORIES.map((tag) => ({
+    tag,
+    count: games.filter((game) => game.categories.includes(tag)).length,
+  }));
 }
 
 export const pad = (n: number) => String(n).padStart(2, '0');

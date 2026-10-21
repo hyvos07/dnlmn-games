@@ -1,0 +1,132 @@
+---
+// Decorative concept only: no file input, audio playback, or map generation yet.
+const lanes = [
+  { key: 'D', notes: [12, 54] },
+  { key: 'F', notes: [30, 76] },
+  { key: 'J', notes: [4, 48] },
+  { key: 'K', notes: [24, 68] },
+];
+---
+
+<span class="soon-stat">MP3 / WAV</span>
+<div class="mania-board">
+  {lanes.map(({ key, notes }, lane) => (
+    <div class="mania-lane" style={`--lane:${lane}`}>
+      {notes.map((position) => (
+        <span class="mania-note" style={`--position:${position}`}></span>
+      ))}
+      <span class="mania-key">{key}</span>
+    </div>
+  ))}
+  <span class="mania-hit-line"></span>
+</div>
+<div class="mania-track">
+  <span class="mania-wave">
+    {[3, 6, 4, 9, 5, 12, 7, 4, 10, 6, 8, 3].map((height) => (
+      <i style={`height:${height}px`}></i>
+    ))}
+  </span>
+  <span>Your song. Your map.</span>
+</div>
+
+<style>
+  .mania-board {
+    position: absolute;
+    inset: 16% 13% 19%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 3cqi;
+    background: var(--bg);
+  }
+
+  .mania-lane {
+    position: relative;
+    overflow: hidden;
+    border-right: 1px solid var(--line);
+    background: linear-gradient(0deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%);
+  }
+
+  .mania-lane:last-of-type {
+    border-right: 0;
+  }
+
+  .mania-note {
+    position: absolute;
+    top: calc(var(--position) * 1%);
+    right: 10%;
+    left: 10%;
+    height: 3cqi;
+    border-radius: 0.8cqi;
+    background: var(--accent);
+    box-shadow: 0 0 4cqi color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+
+  .mania-lane:nth-child(2n) .mania-note {
+    background: var(--fg);
+  }
+
+  .mania-key {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    height: 9cqi;
+    background: var(--raised);
+    color: var(--fg);
+    font: 800 4cqi / 1 var(--display);
+  }
+
+  .mania-hit-line {
+    position: absolute;
+    right: 0;
+    bottom: 9cqi;
+    left: 0;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 4cqi color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+
+  .mania-track {
+    position: absolute;
+    inset: auto 0 7%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3cqi;
+    color: var(--muted);
+    font-size: 3.5cqi;
+  }
+
+  .mania-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 14px;
+    color: var(--accent);
+  }
+
+  .mania-wave i {
+    width: 2px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mania-note {
+      top: -5%;
+      animation: mania-fall 2.8s linear calc((var(--position) / 100 - 1) * 2.8s) infinite;
+    }
+  }
+
+  @keyframes mania-fall {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(58cqi);
+    }
+  }
+</style>

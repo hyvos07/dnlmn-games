@@ -12,7 +12,7 @@ The game uses the same centered, 400-pixel maximum column on every device, shrin
 
 Tap the lowest live target, resting in the second-lowest row, or press **D / F / J / K** for lanes 1–4. The bottom row holds the last tapped character, dimmed with its original face. Like EatOwi, pointer input accepts the correct lane throughout the bottom three rows while the board moves. Each successful touch-down immediately scores, dims the target and advances the next target; the entire grid then scrolls one row over 150 ms. Rapid taps retarget the current movement without an animation lock. Reduced motion makes row movement instant. Holding a key does not repeat hits. Screen-reader lane controls and a label identifying the next target remain available.
 
-Escape or the SDK Pause button pauses the game. Mute and fullscreen are available through the SDK HUD; F belongs to the game.
+Mute and fullscreen are available through the SDK HUD; F belongs to the game. There is no platform pause button, overlay or Escape shortcut. Switching tabs freezes active time and returning resumes automatically.
 
 The timer starts on the first correct hit. A wrong lane before that first hit is ignored.
 
@@ -26,7 +26,7 @@ Each correct hit is one point. **Finish** ends an Endless or Practice session; N
 
 A wrong tile turns red and blinks three times over 600 ms, following EatOwi's error feedback. Normal and Endless freeze gameplay immediately and show results after 1.5 seconds; pause also freezes this feedback sequence. Practice shows the red feedback and lets you continue. Reduced motion uses a steady red tile.
 
-CPS is zero until one active second has elapsed, then equals score divided by the full active elapsed time. Best CPS is the sole saved record, stored through the SDK separately per mode from completed runs. A new CPS record displays “New best CPS!”; a higher score alone does not. The wrong-tile blink delay never counts toward CPS. Tab switching and pause freeze active time. No external services or cookies are required.
+CPS is zero until one active second has elapsed, then equals score divided by the full active elapsed time. Best CPS is the sole saved record, stored through the SDK separately per mode from completed runs. A new CPS record displays “New best CPS!”; a higher score alone does not. The wrong-tile blink delay never counts toward CPS. Tab switching and help dialogs freeze active time. No external services or cookies are required.
 
 ## Artwork and captures
 
@@ -44,7 +44,7 @@ Version 1.0.0 is listed on the launcher with a release date of 2026-10-19. The p
 
 ## Verification
 
-Pure rules have unit tests. Browser coverage checks first-hit timing, scoring, keyboard repeats, touch, pause, timeout, endless/practice behavior, restart, and saved best CPS. Run the repository's full checks, build and production-path browser suite before publishing.
+Pure rules have unit tests. Browser coverage checks first-hit timing, scoring, keyboard repeats, touch, tab visibility, timeout, endless/practice behavior, restart, and saved best CPS. Run the repository's full checks, build and production-path browser suite before publishing.
 
 ## Later ideas
 

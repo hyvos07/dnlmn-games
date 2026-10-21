@@ -39,8 +39,9 @@ pnpm dev:game tile-flip     # http://localhost:4321/tile-flip/ (stop pnpm dev fi
 While you build, keep these in mind:
 - Load assets via imports (`import heroUrl from './assets/hero.png'`) or `` `${import.meta.env.BASE_URL}sfx/jump.ogg` ``, never a bare `/sfx/jump.ogg`.
 - Save with `game.storage.set('highscore', n)`, not `localStorage`.
-- Implement `onPause`, `onResume`, and `onMuteChange` in `initGame`.
+- Implement `onPause`, `onResume`, and `onMuteChange` in `initGame`. Build any player-facing pause controls inside the game. The SDK pause UI and Escape shortcut are disabled by default; enable `platformPause: true` only when explicitly requested.
 - Put rules and scoring in plain functions under `src/logic/` and add a `*.test.ts` next to them.
+- For a DOM game, mark the playfield with `data-board`; the shared smoke tests recognize either this element or a canvas.
 - Test touch input in the browser devtools' device mode early, not at the end.
 
 ## 3. Fill in the metadata

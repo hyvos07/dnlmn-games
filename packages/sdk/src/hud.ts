@@ -3,6 +3,7 @@ import type { SdkManifest } from './types.ts';
 
 export interface HudOptions {
   manifest: SdkManifest;
+  platformPause: boolean;
   lifecycle: Lifecycle;
   exitToMenu: () => void;
   /** `KeyboardEvent.key` values (case-insensitive) the game handles itself. */
@@ -115,7 +116,7 @@ function el<K extends keyof HTMLElementTagNameMap>(
 
 /** Mount the HUD: a corner bar plus pause, help and rotate overlays, inside a shadow root. */
 export function mountHud(options: HudOptions): Hud {
-  const { manifest, lifecycle, exitToMenu } = options;
+  const { manifest, lifecycle, exitToMenu, platformPause } = options;
   const doc = options.doc ?? document;
   const reserved = new Set(options.reservedKeys.map((key) => key.toLowerCase()));
   const host = el(doc, 'div', { 'data-games-hud': '' });
@@ -136,7 +137,9 @@ export function mountHud(options: HudOptions): Hud {
   const muteBtn = button('Mute', ICONS.sound, 'M');
   const fullBtn = button('Fullscreen', ICONS.expand, 'F');
   const helpBtn = button('How to play', ICONS.help);
-  bar.append(menuBtn, pauseBtn, muteBtn);
+  bar.append(menuBtn);
+  if (platformPause) bar.append(pauseBtn);
+  bar.append(muteBtn);
   const canFullscreen = Boolean(doc.fullscreenEnabled && doc.documentElement.requestFullscreen);
   if (canFullscreen) bar.append(fullBtn);
   bar.append(helpBtn);
@@ -184,19 +187,22 @@ export function mountHud(options: HudOptions): Hud {
     doc,
     'p',
     {},
-    '<kbd>Esc</kbd> pause · <kbd>M</kbd> mute' +
-      (canFullscreen ? ' · <kbd>F</kbd> fullscreen' : ''),
+    (platformPause ? '<kbd>Esc</kbd> pause &middot; ' : '') +
+      '<kbd>M</kbd> mute' +
+      (canFullscreen ? ' &middot; <kbd>F</kbd> fullscreen' : ''),
   );
   const closeBtn = el(doc, 'button', { type: 'button', class: 'close' });
   closeBtn.textContent = 'Got it';
   dialog.append(title, description, controls, shortcuts, closeBtn);
 
-  shadow.append(style, bar, pauseLayer, rotateLayer, dialog);
+  shadow.append(style, bar);
+  if (platformPause) shadow.append(pauseLayer);
+  shadow.append(rotateLayer, dialog);
   doc.body.append(host);
 
   let rotating = false;
   const render = () => {
-    const showPause = lifecycle.paused && !rotating && !dialog.open;
+    const showPause = platformPause && lifecycle.paused && !rotating && !dialog.open;
     pauseLayer.classList.toggle('on', showPause);
     rotateLayer.classList.toggle('on', rotating);
     pauseBtn.innerHTML = lifecycle.paused ? ICONS.play : ICONS.pause;
@@ -253,7 +259,7 @@ export function mountHud(options: HudOptions): Hud {
     if (reserved.has(key)) return;
     const target = event.target as HTMLElement | null;
     if (target && /^(input|textarea|select)$/i.test(target.tagName)) return;
-    if (key === 'escape') {
+    if (key === 'escape' && platformPause) {
       if (dialog.open) return; // the dialog closes itself on Esc
       togglePause();
     } else if (key === 'm') toggleMute();

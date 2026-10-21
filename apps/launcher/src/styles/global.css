@@ -355,8 +355,7 @@ html.js [data-js-only] {
   align-items: center;
   justify-content: space-between;
   gap: 12px 24px;
-  padding-top: clamp(28px, 5vh, 44px);
-  border-top: 1px solid var(--line);
+  margin-top: 24px;
 }
 
 .kicker {
@@ -425,54 +424,6 @@ html.js [data-js-only] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-
-.toggle {
-  align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 4px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: 600 15px / 1 var(--sans);
-  cursor: pointer;
-}
-
-html.js .toggle[data-js-only] {
-  display: inline-flex;
-}
-
-.switch {
-  position: relative;
-  width: 44px;
-  height: 26px;
-  border-radius: 999px;
-  background: var(--line);
-  transition: background 180ms;
-}
-
-.switch::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--fg);
-  transition: transform 220ms var(--ease-out);
-}
-
-.toggle[aria-pressed="true"] .switch {
-  background: var(--accent);
-}
-
-.toggle[aria-pressed="true"] .switch::after {
-  transform: translateX(18px);
-  background: var(--on-accent);
-}
-
-/* ── Grid + cards ─────────────────────────────────────────────────────── */
 
 .grid {
   display: grid;
@@ -630,7 +581,7 @@ html.js .toggle[data-js-only] {
 }
 
 .card-tagline {
-  margin: 0;
+  margin: 4px 0 0;
   color: var(--muted);
 }
 
@@ -997,8 +948,7 @@ html.js .toggle[data-js-only] {
   display: block;
 }
 
-html[data-tag] .ghost,
-html[data-touch] .ghost {
+html[data-tag] .ghost {
   display: none;
 }
 

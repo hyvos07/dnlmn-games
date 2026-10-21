@@ -8,24 +8,21 @@ import { applyFilter, type FilterState, readUrlState, setFilterAnimator } from '
 
 const root = document.documentElement;
 const tagLinks = [...document.querySelectorAll<HTMLAnchorElement>('a[data-tag]')];
-const toggle = document.querySelector<HTMLButtonElement>('[data-touch-toggle]');
 
 const current = (): FilterState => ({
   tag: root.dataset.tag ?? '',
-  touch: root.hasAttribute('data-touch'),
 });
 
 const urlFor = (state: FilterState): string => {
   const params = new URLSearchParams();
   if (state.tag) params.set('tag', state.tag);
-  if (state.touch) params.set('touch', '1');
   const query = params.toString();
   return `/${query ? `?${query}` : ''}${location.hash}`;
 };
 
 function go(state: FilterState): void {
   const before = current();
-  if (before.tag === state.tag && before.touch === state.touch) return;
+  if (before.tag === state.tag) return;
   applyFilter(state);
   history.pushState(state, '', urlFor(state));
 }
@@ -42,12 +39,11 @@ if (document.querySelector('[data-grid]')) {
       go({ ...current(), tag: link.dataset.tag ?? '' });
     });
   }
-  toggle?.addEventListener('click', () => go({ ...current(), touch: !current().touch }));
   window.addEventListener('popstate', () => {
     const next = readUrlState(location, root);
     const now = current();
     // Hash-only navigation (e.g. #games) also fires popstate; ignore it.
-    if (next.tag !== now.tag || next.touch !== now.touch) applyFilter(next);
+    if (next.tag !== now.tag) applyFilter(next);
   });
 }
 

@@ -39,6 +39,7 @@ const seed = seedParam && /^\d+$/.test(seedParam) ? Number(seedParam) : null;
 let snake: SnakeGame | null = null;
 const sound = new Sound(false);
 const sdk = initGame(manifest, {
+  platformPause: true,
   root: ui.stage,
   onPause: () => snake?.pause(),
   onResume: () => snake?.resume(),

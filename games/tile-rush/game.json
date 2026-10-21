@@ -7,7 +7,7 @@
   "tags": ["arcade", "casual"],
   "input": ["keyboard", "mouse", "touch"],
   "controls": {
-    "keyboard": "D / F / J / K for lanes 1-4. Escape to pause. Repeated key holds do not score.",
+    "keyboard": "D / F / J / K for lanes 1-4. Repeated key holds do not score.",
     "mouse": "Click the lowest live target, above the bottom row. Each hit scrolls the board.",
     "touch": "Tap those pixels to bash them all!"
   },

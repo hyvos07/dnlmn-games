@@ -1,0 +1,21 @@
+{
+  "slug": "merge-2048",
+  "title": "2048",
+  "tagline": "Slide together. Make something bigger.",
+  "description": "The classic 4 by 4 puzzle, with a little glow. Slide equal tiles together to reach 2048. Every merge adds to your score. Keep playing beyond 2048, save your board between visits, and chase your personal best. Adapted from Gabriele Cirulli\u2019s original MIT-licensed 2048.",
+  "engine": "vanilla",
+  "tags": ["puzzle", "classic"],
+  "input": ["keyboard", "mouse", "touch"],
+  "controls": {
+    "keyboard": "Arrow keys or WASD to slide. Use New game to restart.",
+    "mouse": "Drag across the board to slide tiles.",
+    "touch": "Swipe across the board. Equal tiles merge once per move."
+  },
+  "orientation": "any",
+  "thumbnail": "thumbnail.png",
+  "thumbnailAlt": "The 2048 board with cream, lime and mint numbered tiles on a dark four by four grid",
+  "status": "published",
+  "addedAt": "2026-10-21",
+  "version": "1.0.0",
+  "preview": "preview.webp"
+}

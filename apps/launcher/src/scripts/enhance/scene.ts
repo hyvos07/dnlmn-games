@@ -134,7 +134,6 @@ const TEXT_SELECTOR = [
   '.ctas',
   '.section-head > *',
   '.chips',
-  '.toggle',
   '.footer-big',
   '.footer-grid > div',
   '.fineprint > span',

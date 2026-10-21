@@ -18,15 +18,15 @@ if (typeof globalThis.CSS === 'undefined' || typeof globalThis.CSS.escape !== 'f
 const FIXTURE = `
 <nav>
   <a class="chip" data-tag="" aria-current="true">All</a>
-  <a class="chip" data-tag="arcade">Arcade</a>
+  <a class="chip" data-tag="desktop">Desktop</a>
   <a class="chip" data-tag="classic">Classic</a>
-  <a class="chip" data-tag="puzzle">Puzzle</a>
-  <button data-touch-toggle aria-pressed="false">Touch</button>
+  <a class="chip" data-tag="special">Special</a>
+  <a class="chip" data-tag="mobile">Mobile</a>
 </nav>
 <ol data-grid>
-  <li class="card-item" id="snake" data-tags="arcade classic" data-touch></li>
-  <li class="card-item" id="mouse-only" data-tags="puzzle"></li>
-  <li class="card-item" id="tetris" data-tags="arcade" data-touch></li>
+  <li class="card-item" id="snake" data-tags="desktop classic"></li>
+  <li class="card-item" id="mouse-only" data-tags="special"></li>
+  <li class="card-item" id="tetris" data-tags="desktop"></li>
   <li class="card-item ghost" id="ghost" aria-hidden="true"></li>
 </ol>
 <p data-empty hidden></p>
@@ -34,13 +34,12 @@ const FIXTURE = `
 `;
 
 const item = (id: string) => document.getElementById(id) as HTMLElement;
-const state = (tag = '', touch = false): FilterState => ({ tag, touch });
+const state = (tag = ''): FilterState => ({ tag });
 const root = () => document.documentElement;
 
 beforeEach(() => {
   document.body.innerHTML = FIXTURE;
   root().removeAttribute('data-tag');
-  root().removeAttribute('data-touch');
   setFilterAnimator(null);
 });
 
@@ -48,7 +47,7 @@ describe('readUrlState', () => {
   const read = (pathname: string, search = '') => readUrlState({ pathname, search }, document.body);
 
   it('reads the tag from the query string', () => {
-    expect(read('/', '?tag=arcade')).toEqual(state('arcade'));
+    expect(read('/', '?tag=desktop')).toEqual(state('desktop'));
   });
 
   it('reads the tag from a /tag/<tag>/ path, with or without trailing slash', () => {
@@ -57,7 +56,7 @@ describe('readUrlState', () => {
   });
 
   it('prefers the query over the path', () => {
-    expect(read('/tag/classic/', '?tag=arcade').tag).toBe('arcade');
+    expect(read('/tag/classic/', '?tag=desktop').tag).toBe('desktop');
   });
 
   it('ignores unknown tags', () => {
@@ -67,13 +66,6 @@ describe('readUrlState', () => {
 
   it('treats an empty tag as no filter', () => {
     expect(read('/', '?tag=')).toEqual(state());
-  });
-
-  it('reads touch=1 only', () => {
-    expect(read('/', '?touch=1').touch).toBe(true);
-    expect(read('/', '?touch=0').touch).toBe(false);
-    expect(read('/', '?touch=true').touch).toBe(false);
-    expect(read('/', '?tag=arcade&touch=1')).toEqual(state('arcade', true));
   });
 });
 
@@ -87,43 +79,28 @@ describe('matches', () => {
   it('matches by tag', () => {
     expect(matches(item('snake'), state('classic'))).toBe(true);
     expect(matches(item('tetris'), state('classic'))).toBe(false);
-    expect(matches(item('mouse-only'), state('puzzle'))).toBe(true);
-  });
-
-  it('matches by touch support', () => {
-    expect(matches(item('snake'), state('', true))).toBe(true);
-    expect(matches(item('mouse-only'), state('', true))).toBe(false);
-  });
-
-  it('combines tag and touch', () => {
-    expect(matches(item('snake'), state('arcade', true))).toBe(true);
-    expect(matches(item('mouse-only'), state('puzzle', true))).toBe(false);
-    expect(matches(item('tetris'), state('classic', true))).toBe(false);
+    expect(matches(item('mouse-only'), state('special'))).toBe(true);
   });
 
   it('only matches ghost placeholders when no filter is active', () => {
     expect(matches(item('ghost'), state())).toBe(true);
-    expect(matches(item('ghost'), state('arcade'))).toBe(false);
-    expect(matches(item('ghost'), state('', true))).toBe(false);
-    expect(matches(item('ghost'), state('arcade', true))).toBe(false);
+    expect(matches(item('ghost'), state('desktop'))).toBe(false);
   });
 
   it('treats an item without data-tags as untagged', () => {
     const bare = document.createElement('li');
     expect(matches(bare, state())).toBe(true);
-    expect(matches(bare, state('arcade'))).toBe(false);
+    expect(matches(bare, state('desktop'))).toBe(false);
   });
 });
 
 describe('applyFilter', () => {
   it('sets and removes the html attributes', () => {
-    applyFilter(state('arcade', true));
-    expect(root().dataset.tag).toBe('arcade');
-    expect(root().hasAttribute('data-touch')).toBe(true);
+    applyFilter(state('desktop'));
+    expect(root().dataset.tag).toBe('desktop');
 
     applyFilter(state());
     expect(root().hasAttribute('data-tag')).toBe(false);
-    expect(root().hasAttribute('data-touch')).toBe(false);
   });
 
   it('marks only the active chip with aria-current', () => {
@@ -138,44 +115,34 @@ describe('applyFilter', () => {
     expect(document.querySelectorAll('.chip[aria-current]')).toHaveLength(1);
   });
 
-  it('syncs the touch toggle', () => {
-    const toggle = document.querySelector('[data-touch-toggle]');
-    applyFilter(state('', true));
-    expect(toggle?.getAttribute('aria-pressed')).toBe('true');
-    applyFilter(state());
-    expect(toggle?.getAttribute('aria-pressed')).toBe('false');
-  });
-
   it('announces how many games are showing, ignoring ghosts', () => {
     const status = document.querySelector('[data-status]');
     applyFilter(state());
     expect(status?.textContent).toBe('Showing 3 games.');
 
     applyFilter(state('classic'));
-    expect(status?.textContent).toBe('Showing 1 game tagged classic.');
+    expect(status?.textContent).toBe('Showing 1 game in classic.');
   });
 
   it('shows the empty state only when nothing matches', () => {
     const empty = document.querySelector<HTMLElement>('[data-empty]');
-    applyFilter(state('puzzle', true));
+    applyFilter(state('mobile'));
     expect(empty?.hidden).toBe(false);
-    expect(document.querySelector('[data-status]')?.textContent).toBe(
-      'Showing 0 games tagged puzzle and that work with touch.',
-    );
+    expect(document.querySelector('[data-status]')?.textContent).toBe('Showing 0 games in mobile.');
     applyFilter(state());
     expect(empty?.hidden).toBe(true);
   });
 
   it('announces to the live region only when announce is true', () => {
     const status = document.querySelector('[data-status]');
-    applyFilter(state('arcade', true), { announce: false });
+    applyFilter(state('desktop'), { announce: false });
     expect(status?.textContent).toBe('');
 
-    applyFilter(state('arcade', true));
-    expect(status?.textContent).toBe('Showing 2 games tagged arcade and that work with touch.');
+    applyFilter(state('desktop'));
+    expect(status?.textContent).toBe('Showing 2 games in desktop.');
 
     applyFilter(state('classic'));
-    expect(status?.textContent).toBe('Showing 1 game tagged classic.');
+    expect(status?.textContent).toBe('Showing 1 game in classic.');
 
     applyFilter(state());
     expect(status?.textContent).toBe('Showing 3 games.');
@@ -183,8 +150,8 @@ describe('applyFilter', () => {
 
   it('tolerates a page without optional elements', () => {
     document.body.innerHTML = '';
-    expect(() => applyFilter(state('arcade'))).not.toThrow();
-    expect(root().dataset.tag).toBe('arcade');
+    expect(() => applyFilter(state('desktop'))).not.toThrow();
+    expect(root().dataset.tag).toBe('desktop');
   });
 
   it('routes the change through a registered animator with willShow', () => {

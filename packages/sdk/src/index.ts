@@ -11,6 +11,8 @@ export { createStorage } from './storage.ts';
 export type { SdkManifest } from './types.ts';
 
 export interface InitOptions extends LifecycleCallbacks {
+  /** Opt into the shared pause button, overlay and Escape shortcut. Defaults to false. */
+  platformPause?: boolean;
   /** `KeyboardEvent.key` values the game binds itself, so the HUD ignores them (e.g. `['f']`). */
   reservedKeys?: string[];
   /** The element the game renders into. Gets touch/zoom/context-menu defaults. Defaults to `<body>`. */
@@ -31,7 +33,7 @@ export interface Game {
   pause(): void;
   resume(): void;
   /**
-   * Tell the SDK whether a round is in progress. Pause (Esc, tab switch, rotate) only
+   * Tell the SDK whether a round is in progress. Pause (tab switch, rotate, or opt-in Esc) only
    * applies while playing, so title and game-over screens never show a pause overlay.
    * Defaults to `true`.
    */
@@ -57,12 +59,14 @@ export function initGame(manifest: SdkManifest, options: InitOptions = {}): Game
   const backend = detectLocalStorage();
   const storage = createStorage(manifest.slug, backend);
   const globalStorage = createStorage('global', backend);
-  const lifecycle = createLifecycle(options, globalStorage);
+  const platformPause = options.platformPause === true;
+  const lifecycle = createLifecycle(options, globalStorage, document, !platformPause);
   const exitToMenu = () => {
     window.location.href = '/';
   };
   const hud = mountHud({
     manifest,
+    platformPause,
     lifecycle,
     exitToMenu,
     reservedKeys: options.reservedKeys ?? [],
@@ -71,6 +75,7 @@ export function initGame(manifest: SdkManifest, options: InitOptions = {}): Game
   const wanted = wantedOrientation(manifest.orientation);
   const stopOrientation = watchOrientation(wanted, (mismatched) => {
     if (mismatched) lifecycle.pause('orientation');
+    else if (!platformPause && lifecycle.pauseReason === 'orientation') lifecycle.resume();
     if (wanted) hud.setRotatePrompt(mismatched, wanted);
   });
 

@@ -40,13 +40,14 @@ export const MUTED_KEY = 'muted';
 /**
  * Pause/resume, mute and audio-unlock state, wired to `visibilitychange`.
  *
- * Returning to the tab deliberately does not auto-resume: the game stays paused
- * until the player resumes, so they aren't ambushed mid-action.
+ * Games without platform pause controls resume a hidden-tab pause on return.
+ * Games with platform pause controls wait for the player to resume.
  */
 export function createLifecycle(
   callbacks: LifecycleCallbacks,
   globalStorage: GameStorage,
   doc: Document = document,
+  resumeOnVisible = false,
 ): Lifecycle {
   let paused = false;
   let pauseReason: PauseReason | null = null;
@@ -72,6 +73,7 @@ export function createLifecycle(
 
   const onVisibility = () => {
     if (doc.visibilityState === 'hidden') api.pause('hidden');
+    else if (resumeOnVisible && pauseReason === 'hidden') api.resume();
   };
   doc.addEventListener('visibilitychange', onVisibility);
 

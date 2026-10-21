@@ -52,6 +52,10 @@ public-root/          files copied to dist/ root (_headers, robots.txt, favicon)
 ### Add a new game
 Follow [docs/ADDING_A_GAME.md](./docs/ADDING_A_GAME.md). In short: `pnpm new-game <slug> --engine kaplay`, fill in `game.json`, write the game in `src/`, add thumbnail + `CREDITS.md` + `README.md`, then `pnpm build && pnpm preview` and test at `/<slug>/`.
 
+The combined dev server discovers newly scaffolded games on first request, without a restart.
+
+DOM games mark their interactive playfield with `data-board` so the shared browser smoke tests can recognize it; canvas games are detected by their canvas.
+
 Typing Fortress uses a game-local OGL renderer with vanilla TypeScript rules and anime.js effects ([ADR-013](./docs/DECISIONS.md#adr-013-ogl-battlefield-for-typing-fortress)). Its manifest is `engine: "vanilla"`; this is a specific renderer exception, not permission to add other engines without an ADR.
 
 Every published game also needs an original, game-specific `public/favicon.svg`; replace the scaffold's draft placeholder and keep the relative `./favicon.svg` link in `index.html` so Vite applies the game base once. The launcher uses its own arcade-controller SVG. See [docs/FAVICONS.md](./docs/FAVICONS.md) for artwork, routing, and verification conventions. Do not use emoji as favicon artwork.
@@ -60,10 +64,14 @@ Every published game also needs an original, game-specific `public/favicon.svg`;
 Only touch files inside `games/<slug>/`. If you think another game or the SDK needs changing too, stop and say so rather than doing it in the same change.
 
 ### Change the SDK
+Pause UI belongs to individual games. The SDK pause button, overlay and Escape shortcut are opt-in (`platformPause: true`), never a default for new games. Keep lifecycle callbacks for temporary tab, help and orientation interruptions.
+
 Every game depends on it, so treat it as a public API. Keep changes backward compatible, add tests in `packages/sdk`, and run the full `pnpm build && pnpm test:e2e` to make sure all games still boot.
 
 ### Change the launcher
 The launcher owns the standalone “404 / Nothing here” error page and its Void Patrol space shooter. Keep unknown URLs in place with HTTP 404 through Wrangler's `404-page` fallback; see [docs/404.md](./docs/404.md). The toy is launcher-local and never imports game code.
+
+Launcher filters use All, Mobile, Desktop, Classic, Special, in that order. Derive device categories from manifest input and Classic/Special from the `classic` tag. Do not add a touch-friendly switch or touch badge.
 
 List games in release order: oldest `addedAt` first, with alphabetical slug order for same-day releases. Keep card numbers ascending; the hero's "Latest" shortcut still points to the newest game.
 
@@ -89,7 +97,7 @@ Dev servers can hide base-path bugs. A change is only verified when:
 
 If you can't run a step (no browser, etc.), say which step you skipped. Don't claim it passed.
 
-Playwright uses one worker in CI so software WebGL rendering does not compete with other tests. Install a fixed browser clock before navigation when testing animation loops, and advance it in bounded steps until the expected UI appears rather than assuming a fixed defeat time.
+Playwright defaults to one worker locally and in CI so software WebGL rendering does not compete with other tests. Install and pause a fixed browser clock before navigation when testing animation loops, and advance it in bounded steps until the expected UI appears rather than assuming a fixed defeat time.
 
 For the long Typing Fortress defeat scenario, use bounded 50 ms `clock.fastForward` steps to simulate 20 fps. This preserves its 50 ms frame-delta limit while reducing software rendering work; keep `runFor` for tests that need every timer and intermediate frame.
 

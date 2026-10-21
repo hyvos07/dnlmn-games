@@ -16,6 +16,7 @@ const ui = new Ui();
 const sound = new Sound();
 let siege: Siege | null = null;
 const sdk = initGame(manifest, {
+  platformPause: true,
   root: ui.stage,
   reservedKeys: ['f', 'm'],
   onPause: () => siege?.pause(),

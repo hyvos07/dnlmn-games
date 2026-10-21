@@ -7,8 +7,8 @@ const published = loadGames(join(import.meta.dirname, '../../games')).games.filt
   (game) => game.manifest.status === 'published',
 );
 
-const TAG = published[0]?.manifest.tags[0] ?? '';
-const TAG_B = published[0]?.manifest.tags[1] ?? TAG;
+const TAG = 'mobile';
+const TAG_B = 'classic';
 const urlTag = (tag: string) => new RegExp(`[?]tag=${tag}$`);
 
 /** Slugs of cards (excluding ghost placeholders) that are currently visible. */
@@ -87,7 +87,7 @@ test.describe('tag filter', () => {
     const ghosts = await page.locator('.card-item.ghost').all();
     expect(ghosts.length).toBeGreaterThan(0);
     for (const ghost of ghosts) await expect(ghost).toBeHidden();
-    const expected = published.filter((g) => (g.manifest.tags as string[]).includes(TAG)).length;
+    const expected = published.filter((g) => g.manifest.input.includes('touch')).length;
     expect(await visibleSlugs(page)).toHaveLength(expected);
 
     await all.click();
@@ -146,20 +146,30 @@ test.describe('tag filter', () => {
     }
   });
 
-  test('the touch toggle flips aria-pressed and ?touch=1', async ({ page }) => {
-    await page.goto('/');
-    const toggle = page.locator('button[data-touch-toggle]');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await expect(page).toHaveURL(/[?&]touch=1/);
-    await expect(page.locator('html')).toHaveAttribute('data-touch', '');
-
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    await expect(page).not.toHaveURL(/touch=/);
-    await expect(page.locator('html')).not.toHaveAttribute('data-touch', /.*/);
+  test('categories have a fixed order and touch controls are removed', async ({ page }) => {
+    await page.goto('/?touch=1');
+    await expect(page.locator('.chip')).toHaveText([
+      /^All/,
+      /^Mobile/,
+      /^Desktop/,
+      /^Classic/,
+      /^Special/,
+    ]);
+    await expect(page.locator('[data-touch-toggle], [data-touch]')).toHaveCount(0);
+    await expect(page.locator('.inputs [title="Touch"]')).toHaveCount(0);
+    expect(await visibleSlugs(page)).toHaveLength(published.length);
+    await page.locator('a.chip[data-tag="special"]').click();
+    await expect
+      .poll(() => visibleSlugs(page))
+      .toEqual(
+        published
+          .filter((game) => !game.manifest.tags.includes('classic'))
+          .sort(
+            (a, b) =>
+              a.manifest.addedAt.localeCompare(b.manifest.addedAt) || a.slug.localeCompare(b.slug),
+          )
+          .map((game) => `/${game.slug}/`),
+      );
   });
 });
 

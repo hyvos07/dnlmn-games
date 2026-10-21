@@ -9,8 +9,9 @@ const channel = process.env.PW_CHANNEL || undefined;
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
-  // Keep WebGL renderers and simulated frame loops from competing on CI runners.
-  workers: process.env.CI ? 1 : undefined,
+  // Keep software WebGL renderers and simulated frame loops from competing locally or in CI.
+  // Explicit --workers remains available for targeted runs.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',

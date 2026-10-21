@@ -16,7 +16,7 @@ for (const { slug } of playable) {
       const problems = trackProblems(page);
       const response = await page.goto(`/${slug}/`);
       expect(response?.status()).toBe(200);
-      await expect(page.locator('canvas')).toBeAttached();
+      await expect(page.locator('canvas, [data-board]')).toBeAttached();
       await expect(page.locator('[data-games-hud]')).toHaveCount(1);
       await page.waitForLoadState('networkidle');
       expect(problems).toEqual([]);

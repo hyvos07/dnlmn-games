@@ -71,8 +71,16 @@ test('space shooter auto-starts, ends, and restarts with reduced motion', async 
   const startTime = new Date('2026-01-01T12:00:00Z');
   // Own requestAnimationFrame/performance before the auto-starting game schedules a frame.
   await page.clock.install({ time: startTime });
+  // Freeze before navigation so slow loading cannot overrun the pause timestamp.
+  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/lost-in-space/');
+  // The toy starts after a paint and a timer; drive those while waiting for its public ready state.
+  const shooter = page.locator('[data-shooter]');
+  for (let elapsed = 0; elapsed < 10_000; elapsed += 50) {
+    if (await shooter.evaluate((element) => element.classList.contains('is-ready'))) break;
+    await page.clock.runFor(50);
+  }
   await expect(page.locator('header, footer, nav')).toHaveCount(0);
   await expect(page.locator('#scene')).toHaveCount(0);
   await expect(page.getByText('Error 404 / Out of bounds')).toHaveCount(0);
@@ -86,7 +94,6 @@ test('space shooter auto-starts, ends, and restarts with reduced motion', async 
   const title = await page.getByRole('heading', { level: 1, name: '404' }).boundingBox();
   expect(arena && title && title.y > arena.y + arena.height).toBeTruthy();
   await page.locator('[data-shooter-canvas]').focus();
-  await page.clock.pauseAt(new Date(startTime.getTime() + 10_000));
   await advanceUntilVisible(page, page.locator('[data-shooter-over]'));
   await expect(page.locator('[data-shooter-status]')).toContainText('Nice try.');
   await expect(page.getByText('Signal lost', { exact: false })).toHaveCount(0);
