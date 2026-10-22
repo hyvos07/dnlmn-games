@@ -1,0 +1,21 @@
+{
+  "slug": "tetris",
+  "title": "Tetris",
+  "tagline": "Find your flow. Beat your best.",
+  "description": "A fast, colorful solo stacker. Race through 40 Lines, chase points in two-minute Blitz, or settle into endless Zen with a saved board and undo. Tune your controls and handling, hold pieces, and plan ahead with a ghost and next-piece preview. Records and progress stay on this device.",
+  "engine": "vanilla",
+  "tags": ["puzzle", "arcade", "classic"],
+  "input": ["keyboard", "touch", "mouse"],
+  "controls": {
+    "keyboard": "Left/right: move. Down: soft drop. Up/X: clockwise. Z: counterclockwise. A: 180°. Space: hard drop. C/Shift: hold. Esc: pause. R: retry. Zen: Ctrl+Z/Y undo/redo. Remap gameplay keys in Handling.",
+    "touch": "Use the on-screen movement, rotation, hold and drop buttons. Hold movement buttons to repeat.",
+    "mouse": "Choose a mode and use the on-screen controls. Open Handling to tune movement."
+  },
+  "orientation": "any",
+  "thumbnail": "thumbnail.png",
+  "thumbnailAlt": "Colorful falling blocks on a dark Tetris board, with a hold piece and next-piece queue",
+  "status": "published",
+  "addedAt": "2026-10-22",
+  "version": "1.0.0",
+  "preview": "preview.webp"
+}

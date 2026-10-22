@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Colorful Tetris blocks</title>
+  <rect width="64" height="64" rx="15" fill="#0c0c10"/>
+  <rect x="8" y="8" width="15" height="15" rx="3" fill="#4ad8e9"/>
+  <rect x="24.5" y="8" width="15" height="15" rx="3" fill="#c6ff3d"/>
+  <rect x="41" y="8" width="15" height="15" rx="3" fill="#ff9a50"/>
+  <rect x="8" y="24.5" width="15" height="15" rx="3" fill="#6496ff"/>
+  <path d="M24.5 24.5h31.5v15H41v16.5H24.5z" fill="#c18aff"/>
+  <rect x="8" y="41" width="15" height="15" rx="3" fill="#ff6d79"/>
+  <path d="M41 41h15v15H41z" fill="#8fe35c"/>
+</svg>
