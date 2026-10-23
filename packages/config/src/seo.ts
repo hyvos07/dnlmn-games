@@ -1,9 +1,9 @@
 import type { GameManifest } from './manifest.ts';
 
 export const SITE_ORIGIN = 'https://games.dnlmn.dev';
-export const SITE_NAME = 'Games by dnlmn';
+export const SITE_NAME = 'by dnlmn';
 export const SITE_DESCRIPTION =
-  'Play Snake, 2048, Tetris, Pixel Rush and Typing Fortress in your browser. Free games, no downloads, no accounts, no ads or tracking.';
+  'Play different games in your browser for free, no downloads, no accounts, no ads or tracking.';
 export const COVER_ALT =
   'Games by dnlmn with a lime Snake, floating Tetris blocks, a 2048 tile and a pixel creature on a dark background';
 
