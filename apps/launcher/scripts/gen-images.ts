@@ -22,6 +22,8 @@ mkdirSync(ogDir, { recursive: true });
 const accent = getAccent();
 // OG cards use the accent, so they're rebuilt when the theme changes.
 const themeSource = join(root, '..', '..', 'packages', 'config', 'src', 'theme.ts');
+const generatorSource = join(import.meta.dirname, 'gen-images.ts');
+const homeSource = join(root, 'src', 'assets', 'social-cover.png');
 const ink = SURFACES.dark.bg;
 const paper = SURFACES.dark.fg;
 const muted = SURFACES.dark.muted;
@@ -38,13 +40,40 @@ const xml = (text: string) =>
 
 const DISPLAY = "'Bricolage Grotesque', 'Arial Black', 'Helvetica Neue', Arial, sans-serif";
 
+function wrap(text: string, limit: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of text.split(/\s+/)) {
+    if (line && `${line} ${word}`.length > limit) {
+      lines.push(line);
+      line = '';
+    }
+    line = line ? `${line} ${word}` : word;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 function ogText(title: string, tagline: string): Buffer {
-  const size = title.length > 12 ? 96 : 132;
+  const lines = wrap(title, 12);
+  const longest = Math.max(...lines.map((line) => line.length));
+  const size = Math.min(lines.length > 1 ? 76 : 104, 750 / longest);
+  const titleSvg = lines
+    .map(
+      (line, i) =>
+        `<text x="64" y="${220 + i * 90}" font-family="${DISPLAY}" font-weight="800" font-size="${size}" letter-spacing="-3" fill="${paper}">${xml(line)}</text>`,
+    )
+    .join('');
+  const taglineSvg = wrap(tagline, 30)
+    .map(
+      (line, i) =>
+        `<text x="64" y="${395 + i * 38}" font-family="Arial, sans-serif" font-size="28" fill="${muted}">${xml(line)}</text>`,
+    )
+    .join('');
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
   <rect width="1200" height="630" fill="${ink}"/>
   <rect x="64" y="64" width="64" height="12" rx="6" fill="${accent.accent}"/>
-  <text x="64" y="${330 - size / 2}" font-family="${DISPLAY}" font-weight="800" font-size="${size}" letter-spacing="-4" fill="${paper}">${xml(title)}</text>
-  <text x="64" y="${380}" font-family="Arial, sans-serif" font-size="34" fill="${muted}">${xml(tagline)}</text>
+  ${titleSvg}${taglineSvg}
   <text x="64" y="566" font-family="${DISPLAY}" font-weight="800" font-size="34" fill="${accent.accent}">games.dnlmn.dev</text>
 </svg>`);
 }
@@ -99,15 +128,20 @@ for (const { slug, dir, manifest } of games) {
     }
   }
   const og = join(ogDir, `${slug}.png`);
-  if (!fresh(og, [source, gameJson, themeSource])) {
+  if (!fresh(og, [source, gameJson, themeSource, generatorSource])) {
     await ogCard(og, manifest.title, manifest.tagline, source);
     written++;
   }
 }
 
 const home = join(ogDir, 'home.png');
-if (!fresh(home, [themeSource])) {
-  await ogCard(home, 'Games by dnlmn', 'Small browser games. Free, instant, no install.');
+if (!fresh(home, [homeSource, themeSource, generatorSource])) {
+  // Keep the whole 16:9 artwork visible within the standard social-card canvas.
+  // This is a single PNG frame; animated card previews never enter share metadata.
+  await sharp(homeSource)
+    .resize(1200, 630, { fit: 'contain', background: ink })
+    .png({ compressionLevel: 9 })
+    .toFile(home);
   written++;
 }
 console.log(`gen-images: ${written} file(s) written`);

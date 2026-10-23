@@ -54,6 +54,7 @@ async function advanceTime(page: Page, milliseconds: number): Promise<void> {
 
 async function expectMissThenResults(page: Page): Promise<void> {
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'miss');
+  await expect(page.locator('#time-up')).toBeHidden();
   await expect(page.locator('#results')).toBeHidden();
   const score = await page.locator('#score').innerText();
   const time = await page.locator('#time').innerText();
@@ -65,6 +66,9 @@ async function expectMissThenResults(page: Page): Promise<void> {
   await advanceTime(page, 900);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'over');
   await expect(page.locator('#final-score')).toHaveText(score);
+  await advanceTime(page, 800);
+  await expect(page.locator('#results')).toHaveAttribute('data-result-phase', 'ready');
+  await expect(page.locator('#time-up')).toBeHidden();
 }
 
 test('the open mode menu centers its options and supports touch and keyboard selection', async ({
@@ -268,6 +272,7 @@ test('display switches work independently and persist across reloads', async ({
   await expect(page.locator('#board')).toHaveAttribute('data-lane-visible', 'false');
   await expect(page.locator('#board')).toHaveAttribute('data-glow-visible', 'true');
   await page.locator('#finish-run').click();
+  await advanceTime(page, 1900);
   await page.locator('#menu').click();
   await lane.check();
   await glow.uncheck();
@@ -317,8 +322,21 @@ test('a timed round ends after twenty seconds and can restart or return to its m
   await openRush(page);
   await startRound(page);
   await hitNext(page, isMobile);
-  await advanceTime(page, 21_000);
+  await advanceTime(page, 20_050);
+  await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'ending');
+  await expect(page.locator('#time-up')).toBeVisible();
+  await expect(page.locator('#time-up')).toHaveText("Time's up!");
+  await expect(page.locator('#results')).toBeHidden();
+  await hitNext(page, isMobile);
+  await expect(page.locator('#score')).toHaveText('1');
+  await advanceTime(page, 900);
+  await expect(page.locator('#time-up')).toBeVisible();
+  await page.screenshot({
+    path: `test-results/pixel-rush-time-up-${test.info().project.name}.png`,
+  });
+  await advanceTime(page, 1050);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'over');
+  await expect(page.locator('#time-up')).toBeHidden();
   await expect(page.locator('#time')).toHaveText('0.0');
   await expect(page.locator('#score')).toHaveText('1');
   await page.locator('#again').click();
@@ -433,6 +451,7 @@ test('practice mistakes preserve the target and allow the next correct tap', asy
   await advanceTime(page, 21_000);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'playing');
   await page.locator('#finish-run').click();
+  await advanceTime(page, 1900);
   await expect(page.locator('#stage')).toHaveAttribute('data-screen', 'over');
   await expect(page.locator('#final-score')).toHaveText('2');
   await page.locator('#menu').click();

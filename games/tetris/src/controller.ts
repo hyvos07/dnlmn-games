@@ -1,5 +1,5 @@
 import { getAccent } from '@games/config/theme';
-import { initGame } from '@games/sdk';
+import { initGame, ResultTransition } from '@games/sdk';
 import manifest from '../game.json';
 import { createAudio, readAudioSettings } from './audio.ts';
 import { createInput } from './input.ts';
@@ -22,7 +22,7 @@ export function boot(root: HTMLElement): void {
   document.documentElement.style.setProperty('--games-on-accent', accent.onAccent);
   const view = createView(root);
   let state = createGame('sprint');
-  let screen: 'menu' | 'play' | 'paused' | 'results' | 'settings' = 'menu';
+  let screen: 'menu' | 'play' | 'ending' | 'paused' | 'results' | 'settings' = 'menu';
   let settingsReturn: 'menu' | 'paused' | 'results' = 'menu';
   let frame = 0;
   let last = performance.now();
@@ -55,6 +55,9 @@ export function boot(root: HTMLElement): void {
     },
   });
   game.setPlaying(false);
+  const resultOverlay = root.querySelector<HTMLElement>('[data-run-overlay]');
+  if (!resultOverlay) throw new Error('Missing Tetris results overlay');
+  const result = new ResultTransition(game, resultOverlay);
   let audioSettings = readAudioSettings(game.storage.get('audio-v1', null));
   sound = createAudio(() => game.muted, audioSettings);
   game.onUnlock(() => sound?.unlock());
@@ -101,14 +104,14 @@ export function boot(root: HTMLElement): void {
         (button.dataset.command === 'undo' ? undo.length === 0 : redo.length === 0);
     }
   }
-  function show(next: typeof screen): void {
+  function show(next: Exclude<typeof screen, 'ending'>): void {
     input?.clear();
     screen = next;
     view.showScreen(next);
     root.dataset.screen = next;
     syncSound();
     refresh();
-    if (next === 'paused' || next === 'results')
+    if (next === 'paused')
       root.querySelector<HTMLButtonElement>('[data-banner-actions] button')?.focus();
     if (next === 'menu') root.querySelector<HTMLButtonElement>('[data-mode]')?.focus();
     if (next === 'settings') root.querySelector<HTMLInputElement>('#das')?.focus();
@@ -131,11 +134,22 @@ export function boot(root: HTMLElement): void {
       record = true;
     }
     game.storage.set('records-v1', records);
-    game.setPlaying(false);
-    show('results');
+    input?.clear();
+    screen = 'ending';
+    root.dataset.screen = 'ending';
+    syncSound();
+    refresh();
     view.setRecords(records);
-    view.showResult(state, record);
-    root.querySelector<HTMLButtonElement>('[data-banner-actions] button')?.focus();
+    result.begin(
+      () => {
+        show('results');
+        view.showResult(state, record);
+      },
+      () => {
+        game.setPlaying(false);
+        root.querySelector<HTMLButtonElement>('[data-banner-actions] button')?.focus();
+      },
+    );
     sound?.play(state.won ? 'win' : 'end');
   }
   function changed(before: GameState): void {
@@ -180,6 +194,8 @@ export function boot(root: HTMLElement): void {
     apply,
   );
   function start(mode: Mode, fresh = false): void {
+    if (result.blocked) return;
+    result.cancel();
     persist();
     sound?.sync('silent', true);
     game.setPlaying(false);
@@ -220,6 +236,8 @@ export function boot(root: HTMLElement): void {
     refresh();
   }
   function command(value: string): void {
+    if (result.blocked) return;
+    if (screen === 'results') result.cancel();
     if (value === 'listen') {
       game.setMuted(false);
       sound?.unlock();

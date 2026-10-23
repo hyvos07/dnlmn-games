@@ -91,6 +91,25 @@ select:focus-visible {
 #stage:not([data-screen="playing"], [data-screen="miss"]) .timer {
   visibility: hidden;
 }
+.time-up {
+  position: absolute;
+  z-index: 6;
+  inset: 50% 0 auto;
+  margin: 0;
+  padding-inline: 16px;
+  transform: translateY(-50%);
+  color: var(--ink);
+  font-family: var(--games-display-font);
+  font-size: clamp(36px, 12vw, 60px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  text-align: center;
+  text-shadow:
+    0 2px 16px var(--background),
+    0 0 4px var(--background);
+  pointer-events: none;
+}
 .overlay {
   position: absolute;
   inset: 0;

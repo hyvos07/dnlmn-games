@@ -1,6 +1,7 @@
 ---
 import displayFont from '@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-800-normal.woff2?url';
 import sansFont from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+import { COVER_ALT, SITE_DESCRIPTION, SITE_NAME, serializeJsonLd } from '@games/config/seo';
 import { getAccent } from '@games/config/theme';
 import favicon from '../../../../public-root/favicon.svg?url&no-inline';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -13,6 +14,8 @@ interface Props {
   /** Path for the canonical URL, e.g. "/about/". */
   path: string;
   ogImage?: string;
+  ogImageAlt?: string;
+  structuredData?: Record<string, unknown>;
   /** Run the WebGL scene (index only). Other pages show the static poster. */
   scene?: boolean;
   /** Pointer-reactive dot grid instead (quiet text pages like about). */
@@ -32,9 +35,11 @@ interface Props {
 
 const {
   title,
-  description = 'Small browser games by dnlmn. Free, instant, no install, no tracking.',
+  description = SITE_DESCRIPTION,
   path,
   ogImage = '/og/home.png',
+  ogImageAlt = COVER_ALT,
+  structuredData,
   scene = false,
   dots = false,
   tag,
@@ -46,7 +51,18 @@ const {
 } = Astro.props;
 
 const site = Astro.site?.origin ?? 'https://games.dnlmn.dev';
-const fullTitle = title ? `${title} · Games by dnlmn` : 'Games by dnlmn';
+const fullTitle = title ? `${title} · ${SITE_NAME}` : `Free Browser Games · ${SITE_NAME}`;
+const image = new URL(ogImage, site).href;
+const website = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${site}/#website`,
+  name: SITE_NAME,
+  alternateName: 'games.dnlmn.dev',
+  url: `${site}/`,
+  description: SITE_DESCRIPTION,
+  inLanguage: 'en',
+};
 const a = getAccent();
 const tokens = `:root{--accent:${a.accent};--on-accent:${a.onAccent};--accent-text-dark:${a.accentTextDark};--accent-text-light:${a.accentTextLight};--secondary:${a.secondary}}`;
 const fonts = `@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:800;font-display:optional;src:url(${displayFont}) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:optional;src:url(${sansFont}) format("woff2")}`;
@@ -63,7 +79,7 @@ const headScript = `(function(d){d.classList.add('js');try{var q=new URLSearchPa
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {!noindex && <link rel="canonical" href={new URL(path, site).href} />}
-    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="robots" content={noindex ? 'noindex' : 'index, follow, max-image-preview:large'} />
     <link rel="icon" href={favicon} type="image/svg+xml" />
     <meta name="theme-color" content="#0C0C10" />
     <meta name="color-scheme" content="dark" />
@@ -72,10 +88,18 @@ const headScript = `(function(d){d.classList.add('js');try{var q=new URLSearchPa
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={new URL(path, site).href} />
-    <meta property="og:image" content={new URL(ogImage, site).href} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+    {!noindex && path === '/' && <script is:inline type="application/ld+json" set:html={serializeJsonLd(website)} />}
+    {!noindex && structuredData && <script is:inline type="application/ld+json" set:html={serializeJsonLd(structuredData)} />}
     <link rel="sitemap" href="/sitemap.xml" />
     <link rel="preload" href={displayFont} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={sansFont} as="font" type="font/woff2" crossorigin />

@@ -1,4 +1,4 @@
-import type { Game } from '@games/sdk';
+import { type Game, ResultTransition } from '@games/sdk';
 import type { Sound } from './audio.ts';
 import { autopilot } from './logic/autopilot.ts';
 import type { Board, Dir, Vec } from './logic/grid.ts';
@@ -26,10 +26,6 @@ export interface SnakeDeps {
 }
 
 const ATTRACT_STEP_MS = 95;
-/** Delay before the game-over card, so the death animation reads first. */
-const OVER_CARD_MS = 520;
-/** Ignore restart input until the card is up, so a held key doesn't skip it. */
-const RESTART_GRACE_MS = OVER_CARD_MS + 80;
 const HIGHSCORE_KEY = 'highscore';
 
 /** The game loop: fixed-timestep logic with render interpolation between steps. */
@@ -43,12 +39,12 @@ export class SnakeGame {
   private last = 0;
   private raf = 0;
   private running = false;
-  private diedAt = 0;
-  private overTimer = 0;
+  private readonly result: ResultTransition;
   private foodBornAt = 0;
   private best: number;
 
   constructor(private readonly deps: SnakeDeps) {
+    this.result = new ResultTransition(deps.sdk, deps.ui.over);
     this.rng = createRng(deps.randomSeed());
     this.state = createState(deps.board, this.rng);
     this.prev = this.state.body;
@@ -59,6 +55,10 @@ export class SnakeGame {
 
   get score(): number {
     return this.state.score;
+  }
+
+  get canPrimary(): boolean {
+    return this.mode !== 'playing' && !this.deps.sdk.paused && !this.result.blocked;
   }
 
   begin(): void {
@@ -79,13 +79,11 @@ export class SnakeGame {
     if (this.queue.length > before) this.deps.sound.turn();
   }
 
-  /** Start or restart. `fromButton` skips the grace period: the button only exists once the card is up. */
-  primary(fromButton = false): void {
+  /** Start or restart after the result has had time to settle. */
+  primary(): void {
+    if (!this.canPrimary) return;
     if (this.mode === 'attract') this.startRound();
-    else if (
-      this.mode === 'over' &&
-      (fromButton || performance.now() - this.diedAt > RESTART_GRACE_MS)
-    ) {
+    else if (this.mode === 'over') {
       this.startRound();
     }
   }
@@ -112,7 +110,7 @@ export class SnakeGame {
   }
 
   private startRound(): void {
-    window.clearTimeout(this.overTimer);
+    this.result.cancel();
     const seed = this.deps.seed ?? this.deps.randomSeed();
     this.reset(createRng(seed));
     this.mode = 'playing';
@@ -203,19 +201,17 @@ export class SnakeGame {
           ui.setScore(state.score, true);
         }
       } else if (event.type === 'die') {
-        if (playing) this.gameOver(now, false);
+        if (playing) this.gameOver(false);
         else window.setTimeout(() => this.mode === 'attract' && this.enterAttract(), 900);
       } else if (event.type === 'win' && playing) {
-        this.gameOver(now, true);
+        this.gameOver(true);
       }
     }
   }
 
-  private gameOver(now: number, won: boolean): void {
+  private gameOver(won: boolean): void {
     const { effects, sound, ui, sdk, palette } = this.deps;
     this.mode = 'over';
-    this.diedAt = now;
-    sdk.setPlaying(false);
     const score = this.state.score;
     const newBest = score > this.best;
     if (newBest) {
@@ -233,9 +229,12 @@ export class SnakeGame {
       if (head) effects.burst(head.x + 0.5, head.y + 0.5, [palette.danger, palette.snake], 22);
     }
     if (newBest && !won) sound.best();
-    this.overTimer = window.setTimeout(
-      () => this.mode === 'over' && ui.showOver(score, this.best, newBest, won),
-      won ? 200 : OVER_CARD_MS,
+    this.result.begin(
+      () => ui.showOver(score, this.best, newBest, won),
+      () => {
+        sdk.setPlaying(false);
+        ui.againButton.focus({ preventScroll: true });
+      },
     );
   }
 }

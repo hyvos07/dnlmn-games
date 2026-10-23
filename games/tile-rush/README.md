@@ -26,6 +26,8 @@ Each correct hit is one point. **Finish** ends an Endless or Practice session; N
 
 A wrong tile turns red and blinks three times over 600 ms, following EatOwi's error feedback. Normal and Endless freeze gameplay immediately and show results after 1.5 seconds; pause also freezes this feedback sequence. Practice shows the red feedback and lets you continue. Reduced motion uses a steady red tile.
 
+When Normal runs out of time, a large centered “Time's up!” message appears over the final board for the one-second result hold, then the results overlay fades in. Wrong taps and manually finished runs do not show this message.
+
 CPS is zero until one active second has elapsed, then equals score divided by the full active elapsed time. Best CPS is the sole saved record, stored through the SDK separately per mode from completed runs. A new CPS record displays “New best CPS!”; a higher score alone does not. The wrong-tile blink delay never counts toward CPS. Tab switching and help dialogs freeze active time. No external services or cookies are required.
 
 ## Artwork and captures

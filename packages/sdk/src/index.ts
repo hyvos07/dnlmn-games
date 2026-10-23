@@ -6,6 +6,7 @@ import { createStorage, detectLocalStorage, type GameStorage } from './storage.t
 import type { SdkManifest } from './types.ts';
 
 export type { PauseReason } from './lifecycle.ts';
+export { ResultTransition } from './result-transition.ts';
 export type { GameStorage, StorageBackend } from './storage.ts';
 export { createStorage } from './storage.ts';
 export type { SdkManifest } from './types.ts';

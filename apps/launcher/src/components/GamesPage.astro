@@ -1,4 +1,5 @@
 ---
+import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from '@games/config/seo';
 import Base from '../layouts/Base.astro';
 import { getGames, label, tagCounts } from '../lib/games.ts';
 import ComingSoon from './ComingSoon.astro';
@@ -15,6 +16,28 @@ const { tag } = Astro.props;
 const games = await getGames();
 const tags = tagCounts(games);
 const total = games.length;
+const listed = tag ? games.filter((game) => game.categories.includes(tag)) : games;
+const description = tag
+  ? `Play ${listed.length} free ${label(tag).toLowerCase()} browser games by dnlmn. ${listed.map((game) => game.title).join(', ')}. No downloads, accounts or ads.`
+  : SITE_DESCRIPTION;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: tag ? `${label(tag)} games · ${SITE_NAME}` : SITE_NAME,
+  url: `${SITE_ORIGIN}${tag ? `/tag/${tag}/` : '/'}`,
+  description,
+  isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: listed.length,
+    itemListElement: listed.map((game, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: game.title,
+      url: `${SITE_ORIGIN}${game.href}`,
+    })),
+  },
+};
 
 // Filtering is pure CSS keyed off <html data-tag>, so it works before
 // JS runs (and without JS on the /tag/ pages). JS only flips the attributes.
@@ -33,6 +56,8 @@ const css = [
 
 <Base
   title={tag ? `${label(tag)} games` : undefined}
+  description={description}
+  structuredData={structuredData}
   path={tag ? `/tag/${tag}/` : '/'}
   scene
   tag={tag}

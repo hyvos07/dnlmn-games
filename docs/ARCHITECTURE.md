@@ -201,11 +201,15 @@ game.exitToMenu();   // navigates to '/'
 
 The SDK is the only place allowed to touch `localStorage`, fullscreen APIs, or global keyboard shortcuts.
 
+`ResultTransition` is an opt-in presentation helper used by Snake, 2048, Tetris, Typing Fortress and Tile Rush. Games save final scores immediately, then call `begin(reveal, focus, holdMs?)` to hold the final playfield for 1,000 ms, fade their own results overlay over 300 ms, and leave another 500 ms to read before enabling controls and moving focus. Reduced motion skips the visual fade while preserving the input delay. Tile Rush retains its existing 1,500 ms wrong-tile feedback and uses a zero additional hold for that ending.
+
+The helper freezes while the SDK is paused or the document is hidden, makes the overlay inert until ready, and rejects clicks from gestures begun before readiness and held activation keys. Pass any separate toolbar restart buttons as the constructor's optional third argument so they get the same gesture protection. Games guard their other restart/menu shortcuts with `blocked`, call `cancel()` before starting or continuing, and call `destroy()` if they tear down the game in the same document. Keep `setPlaying(true)` until the transition completes so temporary interruptions still pause it; stop gameplay immediately through the game's own ended state.
+
 ## 7. Launcher
 
 - Astro content collection loads `../../games/*/game.json` with the glob loader and the same Zod schema from `@games/config`. Only `published` games are listed.
 - Published cards run from the first release to the latest: ascending `addedAt`, then alphabetical slug for ties. Card numbers match that order. The hero's "Latest" link selects the last game in this release-ordered list.
-- `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, copies a game's preview clip to `/thumbs/<slug>-preview.webp`, and a basic OG card per game to `/og/<slug>.png` (plus `/og/home.png`). Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
+- `apps/launcher/scripts/gen-images.ts` (sharp) runs before `astro build`/`astro dev`. It writes thumbnails as AVIF/WebP at 400 and 800 px to `/thumbs/<slug>-<size>.<ext>`, copies a game's preview clip to `/thumbs/<slug>-preview.webp`, and a static PNG share card per game to `/og/<slug>.png`. The homepage card at `/og/home.png` comes from the committed cover source. Outputs are gitignored and skipped when they're newer than their sources. Each game's `index.html` points at its OG image through meta tags injected by `defineGameConfig` (Vite HTML transform).
 - Theme: dark only. Accent tokens come from `@games/config/theme` (`ACCENT`) and are inlined as CSS variables.
 - Fonts (Bricolage Grotesque 800, Instrument Sans variable, latin subset) are self-hosted, preloaded and use `font-display: optional`, so a late font never shifts layout.
 - Categories appear in fixed order: All, Mobile, Desktop, Classic, Special. Mobile is derived from touch input; Desktop from keyboard, mouse, or gamepad input. Games tagged `classic` appear in Classic; all others appear in Special. Cards show these categories, with no touch switch or touch icon. Manifest genre tags and game controls remain available for metadata and the SDK.
@@ -259,6 +263,27 @@ Thumbnails and OG images keep stable, unhashed URLs (link previews depend on the
 HTML keeps the default revalidation so deploys show up immediately.
 
 **Limits to remember:** 25 MiB per file, plus a maximum file count per deployment. Neither matters for KAPLAY or vanilla games, but both matter for Godot (see [GODOT.md](./GODOT.md)).
+
+### Search and sharing
+
+`packages/config/src/seo.ts` owns site identity and safe JSON-LD serialization.
+`Base.astro` renders canonical/search/social tags in initial HTML, with `WebSite`
+data on the homepage. `GamesPage.astro` adds collection data for the visible game
+list and unique category descriptions. `defineGameConfig` injects each game's
+search/social tags and `VideoGame` data from its manifest. Built hidden games
+receive `noindex`; only published games enter `/sitemap.xml`. The 404 has
+`noindex`, no canonical and HTTP 404.
+
+Share images are always static 1200 × 630 PNGs. The homepage uses the committed
+`apps/launcher/src/assets/social-cover.png`, resized with containment to preserve
+the full artwork, and games use their own gameplay screenshots. The generator
+checks source, theme and generator modification times before reusing an image.
+The committed source is included in the launcher build cache inputs; ignored
+`exports/` artwork is never needed by CI. `tests/e2e/seo.spec.ts` checks initial
+HTML without JavaScript, sitemap coverage and the actual single-frame PNGs.
+
+See [RELEASE.md](./RELEASE.md) for deployment and Google Search Console steps,
+including Domain-property coverage of subdomains.
 
 ## 9. Escape hatch: deploying a game separately
 

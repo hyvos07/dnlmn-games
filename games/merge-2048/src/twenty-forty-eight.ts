@@ -1,5 +1,5 @@
 import { getAccent } from '@games/config/theme';
-import { type Game, initGame } from '@games/sdk';
+import { type Game, initGame, ResultTransition } from '@games/sdk';
 import manifest from '../game.json';
 import { BoardView } from './board-view.ts';
 import { bindInput } from './input.ts';
@@ -19,9 +19,11 @@ export class TwentyFortyEight {
   private started = false;
   private hasSave = false;
   private readonly dialog = element<HTMLDialogElement>('restart-dialog');
+  private readonly instructions = element<HTMLDialogElement>('instructions-dialog');
   private readonly overlay = element('overlay');
   private readonly resetPointer: () => void;
   private demoTimer = 0;
+  private readonly result: ResultTransition;
 
   constructor() {
     const accent = getAccent();
@@ -36,12 +38,13 @@ export class TwentyFortyEight {
       },
       onResume: () => {
         this.resetPointer?.();
-        this.view.resume();
-        this.sound.mute(this.sdk.muted);
+        if (!this.dialog.open && !this.instructions.open) this.view.resume();
+        this.sound.mute(this.sdk.muted || this.instructions.open);
       },
-      onMuteChange: (muted) => this.sound.mute(muted || this.sdk.paused),
+      onMuteChange: (muted) => this.sound.mute(muted || this.sdk.paused || this.instructions.open),
     });
     this.sdk.setPlaying(false);
+    this.result = new ResultTransition(this.sdk, this.overlay, [element('new-game')]);
     this.board.inert = true;
     this.sdk.onUnlock(() => {
       this.sound.unlock();
@@ -68,16 +71,23 @@ export class TwentyFortyEight {
       this.board,
       (direction) => this.move(direction),
       () =>
-        this.started && !this.sdk.paused && !this.dialog.open && !this.manager.isGameTerminated(),
+        this.started &&
+        !this.sdk.paused &&
+        !this.dialog.open &&
+        !this.instructions.open &&
+        !this.manager.isGameTerminated(),
     );
     element('play').addEventListener('click', () => this.start(false));
     element('retry').addEventListener('click', () => this.start(true));
     element('continue').addEventListener('click', () => {
+      if (this.result.blocked) return;
+      this.result.cancel();
       this.manager.continue();
       this.update();
       this.board.focus({ preventScroll: true });
     });
     element('new-game').addEventListener('click', () => {
+      if (this.result.blocked) return;
       if ((!this.started && !this.hasSave) || this.manager.over) return this.start(true);
       this.resetPointer();
       this.view.pause();
@@ -97,6 +107,21 @@ export class TwentyFortyEight {
       this.dialog.close();
       this.start(true);
     });
+    element('how-to-play').addEventListener('click', () => {
+      if (this.result.blocked) return;
+      this.resetPointer();
+      this.view.pause();
+      this.sound.mute(true);
+      this.instructions.showModal();
+    });
+    this.instructions.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') event.stopPropagation();
+    });
+    this.instructions.addEventListener('close', () => {
+      this.resetPointer();
+      if (!this.sdk.paused) this.view.resume();
+      this.sound.mute(this.sdk.muted || this.sdk.paused);
+    });
     window.addEventListener('pagehide', () => clearInterval(this.demoTimer));
   }
 
@@ -109,6 +134,7 @@ export class TwentyFortyEight {
       if (
         document.hidden ||
         this.dialog.open ||
+        this.instructions.open ||
         this.started ||
         matchMedia('(prefers-reduced-motion: reduce)').matches
       )
@@ -120,6 +146,8 @@ export class TwentyFortyEight {
   }
 
   private start(fresh: boolean): void {
+    if (this.result.blocked) return;
+    this.result.cancel();
     clearInterval(this.demoTimer);
     this.resetPointer();
     if (fresh) this.manager = new GameManager();
@@ -155,16 +183,24 @@ export class TwentyFortyEight {
     element('play').hidden = true;
     element('continue').hidden = !manager.won || manager.over || manager.keepPlaying;
     element('retry').hidden = !manager.isGameTerminated();
-    this.overlay.hidden = !manager.isGameTerminated();
+    this.overlay.hidden = true;
     this.board.inert = manager.isGameTerminated();
     if (manager.isGameTerminated()) {
       element('overlay-title').textContent = manager.over ? 'No more moves.' : '2048. Nicely done.';
       element('overlay-copy').textContent = manager.over
         ? `You made ${manager.score.toLocaleString()} points. Ready for another?`
         : 'You reached 2048. Keep going and see how big you can get.';
-      element(manager.over ? 'retry' : 'continue').focus({ preventScroll: true });
+      this.result.begin(
+        () => {
+          this.overlay.hidden = false;
+        },
+        () => {
+          this.sdk.setPlaying(false);
+          element(manager.over ? 'retry' : 'continue').focus({ preventScroll: true });
+        },
+      );
     }
-    this.sdk.setPlaying(!manager.isGameTerminated());
+    this.sdk.setPlaying(true);
     element('status').textContent = manager.over
       ? `No more moves. Final score ${manager.score}.`
       : manager.won && !manager.keepPlaying

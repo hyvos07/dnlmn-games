@@ -302,6 +302,11 @@ test('Blitz counts down to time up while the player keeps the board clear', asyn
   }
   expect(model.elapsed).toBe(120_000);
   expect(model.lines).toBeGreaterThan(0);
+  await expect(page.locator('#app')).toHaveAttribute('data-screen', 'ending');
+  const finalScore = await page.locator('[data-stat="score"]').innerText();
+  await page.keyboard.press('KeyR');
+  await expect(page.locator('[data-stat="score"]')).toHaveText(finalScore);
+  await page.clock.runFor(1900);
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'results');
   await expect(page.locator('[data-banner-title]')).toHaveText('TIME UP.');
   await expect(page.locator('[data-stat="time"]')).toHaveText('0:00.000');

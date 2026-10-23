@@ -44,7 +44,7 @@ test('2048 opens with a start screen, original attribution and a working favicon
   const problems = trackProblems(page);
   await page.goto(route);
   await expect(page.locator('#play')).toBeVisible();
-  await expect(page.locator('.intro .instructions-detail')).toContainText('Swipe, drag, or use');
+  await expect(page.locator('#how-to-play')).toBeVisible();
   await expect(page.locator('#instructions')).toHaveCount(1);
   await expect(page.locator('.brand-mark, .edition, #overlay-kicker, #milestone')).toHaveCount(0);
   await expect(page.locator('#board [role="gridcell"]')).toHaveCount(16);
@@ -62,6 +62,51 @@ test('2048 opens with a start screen, original attribution and a working favicon
 
 test.describe('saved board, merge and lifecycle', () => {
   test.use({ storageState: storage(saved([[2, 2, 2, 2]])), reducedMotion: 'reduce' });
+
+  test('How to play explains controls, traps focus, and preserves the board through tab interruptions', async ({
+    page,
+  }) => {
+    const problems = trackProblems(page);
+    await page.addInitScript(() => {
+      Math.random = () => 0.99;
+    });
+    await page.goto(route);
+    await page.locator('#play').click();
+    await page.keyboard.press('ArrowLeft');
+    const before = await getBoard(page);
+    const help = page.locator('#how-to-play');
+    await help.click();
+    const dialog = page.getByRole('dialog', { name: 'How to play', exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('All tiles move together');
+    await expect(dialog).toContainText('no moves remain');
+    await expect(dialog.locator('.merge-example')).toBeVisible();
+    const close = dialog.getByRole('button', { name: 'Got it' });
+    await expect(close).toBeFocused();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(close).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    expect(await getBoard(page)).toEqual(before);
+    for (const state of ['hidden', 'visible'])
+      await page.evaluate((value) => {
+        Object.defineProperty(document, 'visibilityState', { configurable: true, value });
+        document.dispatchEvent(new Event('visibilitychange'));
+      }, state);
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('ArrowLeft');
+    expect(await getBoard(page)).toEqual(before);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(help).toBeFocused();
+    await help.click();
+    await close.click();
+    await expect(dialog).toBeHidden();
+    await page.locator('#board').focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.locator('#score')).toHaveText('16');
+    expect(problems).toEqual([]);
+  });
 
   test('one merge per tile, exact scoring, invalid move, persistence, Escape and restart confirmation', async ({
     page,
@@ -181,6 +226,7 @@ test.describe('winning', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(page.locator('#overlay-title')).toHaveText('2048. Nicely done.');
     await expect(page.locator('#score')).toHaveText('2048');
+    await expect(page.locator('#overlay')).toBeVisible();
     const originalViewport = page.viewportSize();
     for (const viewport of [
       { width: 320, height: 568 },
@@ -240,6 +286,59 @@ test.describe('game over', () => {
     await expect(page.locator('#score')).toHaveText('0');
     await expect(page.locator('#best')).toHaveText('128');
     await expect(page.locator('#overlay')).toBeHidden();
+  });
+});
+
+test.describe('result transition', () => {
+  test.use({ storageState: storage(saved([[1024, 1024, 2048, 0]])) });
+
+  test('holds the winning move, fades the menu, and requires fresh input after the score can be read', async ({
+    page,
+  }) => {
+    const problems = trackProblems(page);
+    const time = new Date('2026-01-01T12:00:00Z');
+    await page.clock.install({ time });
+    await page.clock.pauseAt(time);
+    await page.goto(route);
+    await page.locator('#play').click();
+    await page.keyboard.down('Space');
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.locator('#score')).toHaveText('2048');
+    expect((await getBoard(page))?.won).toBe(true);
+    await expect(page.locator('#overlay')).toBeHidden();
+    // The header shortcut must not bypass the result delay either.
+    await page.locator('#new-game').click();
+    await expect(page.locator('#restart-dialog')).toBeHidden();
+    await page.clock.runFor(900);
+    await expect(page.locator('#overlay')).toBeHidden();
+    await page.screenshot({
+      path: `test-results/2048-result-hold-${test.info().project.name}.png`,
+    });
+    await page.clock.runFor(250);
+    await expect(page.locator('#overlay')).toHaveAttribute('data-result-phase', 'fade');
+    const opacity = await page
+      .locator('#overlay')
+      .evaluate((node) => Number(getComputedStyle(node).opacity));
+    expect(opacity).toBeGreaterThan(0);
+    expect(opacity).toBeLessThan(1);
+    await expect(page.locator('#overlay')).toHaveJSProperty('inert', true);
+    const retry = await page.locator('#retry').boundingBox();
+    if (!retry) throw new Error('Results must expose retry bounds');
+    await page.mouse.move(retry.x + retry.width / 2, retry.y + retry.height / 2);
+    await page.mouse.down();
+    await page.clock.runFor(700);
+    await expect(page.locator('#overlay')).toHaveAttribute('data-result-phase', 'ready');
+    await page.mouse.up();
+    await page.keyboard.up('Space');
+    await expect(page.locator('#score')).toHaveText('2048');
+    await expect(page.locator('#overlay')).toBeVisible();
+    await page.screenshot({
+      path: `test-results/2048-result-ready-${test.info().project.name}.png`,
+    });
+    await page.locator('#continue').click();
+    await expect(page.locator('#overlay')).toBeHidden();
+    await expect(page.locator('#score')).toHaveText('2048');
+    expect(problems).toEqual([]);
   });
 });
 

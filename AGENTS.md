@@ -64,11 +64,15 @@ Every published game also needs an original, game-specific `public/favicon.svg`;
 Only touch files inside `games/<slug>/`. If you think another game or the SDK needs changing too, stop and say so rather than doing it in the same change.
 
 ### Change the SDK
+Game results use the opt-in `ResultTransition` helper: save scores immediately, hold the final playfield, fade the game's results overlay, then enable actions after a short reading interval. Guard restart/menu shortcuts with `blocked` and keep SDK lifecycle interruptions active until the transition completes. See [ARCHITECTURE.md §6](./docs/ARCHITECTURE.md#6-gamessdk).
+
 Pause UI belongs to individual games. The SDK pause button, overlay and Escape shortcut are opt-in (`platformPause: true`), never a default for new games. Keep lifecycle callbacks for temporary tab, help and orientation interruptions.
 
 Every game depends on it, so treat it as a public API. Keep changes backward compatible, add tests in `packages/sdk`, and run the full `pnpm build && pnpm test:e2e` to make sure all games still boot.
 
 ### Change the launcher
+Release preparation, SEO metadata and Search Console steps are documented in [docs/RELEASE.md](./docs/RELEASE.md). Social previews always use static 1200 × 630 PNGs; keep animated gameplay clips out of Open Graph and Twitter/X metadata. The homepage cover source is the committed `apps/launcher/src/assets/social-cover.png`, so a clean build never relies on ignored portfolio exports.
+
 The launcher owns the standalone “404 / Nothing here” error page and its Void Patrol space shooter. Keep unknown URLs in place with HTTP 404 through Wrangler's `404-page` fallback; see [docs/404.md](./docs/404.md). The toy is launcher-local and never imports game code.
 
 Launcher filters use All, Mobile, Desktop, Classic, Special, in that order. Derive device categories from manifest input and Classic/Special from the `classic` tag. Do not add a touch-friendly switch or touch badge.

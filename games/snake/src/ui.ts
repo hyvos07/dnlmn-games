@@ -12,7 +12,7 @@ export class Ui {
   private readonly score = $<HTMLOutputElement>('score');
   private readonly best = $<HTMLOutputElement>('best');
   private readonly start = $<HTMLElement>('start');
-  private readonly over = $<HTMLElement>('over');
+  readonly over = $<HTMLElement>('over');
   private readonly overKicker = $<HTMLElement>('over-kicker');
   private readonly overScore = $<HTMLElement>('over-score');
   private readonly overBest = $<HTMLElement>('over-best');
@@ -49,7 +49,6 @@ export class Ui {
     this.overBest.textContent = newBest ? 'Previous best beaten' : `Best ${best}`;
     this.over.hidden = false;
     this.stage.dataset.mode = 'over';
-    this.againButton.focus({ preventScroll: true });
   }
 
   private bump(node: HTMLElement): void {

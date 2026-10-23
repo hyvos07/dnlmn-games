@@ -47,6 +47,8 @@ async function advanceSiegeUntilOver(page: Page): Promise<void> {
     for (let frame = 0; frame < 20; frame++) await page.clock.fastForward(50);
   }
   await expect(stage).toHaveAttribute('data-screen', 'over');
+  await page.clock.runFor(800);
+  await expect(page.locator('.results-screen')).toHaveAttribute('data-result-phase', 'ready');
 }
 
 test.describe('Typing Fortress physical keyboard play', () => {

@@ -3,7 +3,10 @@ import { type InitOptions, initGame } from '@games/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { boot } from './controller.ts';
 
-vi.mock('@games/sdk', () => ({ initGame: vi.fn() }));
+vi.mock('@games/sdk', async (original) => ({
+  ...(await original<typeof import('@games/sdk')>()),
+  initGame: vi.fn(),
+}));
 vi.mock('./audio.ts', async (original) => ({
   ...(await original<typeof import('./audio.ts')>()),
   createAudio: () => ({ unlock: vi.fn(), play: vi.fn(), sync: vi.fn(), setVolume: vi.fn() }),

@@ -108,10 +108,18 @@ test('seeded round: steering to the food scores', async ({ page }) => {
 
 test('the high score persists across a reload', async ({ page }) => {
   await eatFirstFood(page);
+  const board = await page.locator('#board').boundingBox();
+  if (!board) throw new Error('Snake board missing');
+  await page.mouse.move(board.x + board.width / 2, board.y + board.height / 2);
+  await page.mouse.down();
   // Keep going straight until the snake hits a wall and the game-over card appears.
   const over = page.locator('#over');
   for (let i = 0; i < 60 && !(await over.isVisible()); i++) await page.clock.runFor(STEP_MS);
   await expect(page.locator('#over')).toBeVisible();
+  await page.clock.runFor(850);
+  await page.mouse.up();
+  await expect(page.locator('#over')).toBeVisible();
+  await expect(page.locator('#over')).toHaveAttribute('data-result-phase', 'ready');
   await expect(page.locator('#best')).toHaveText('10');
 
   await page.clock.resume();

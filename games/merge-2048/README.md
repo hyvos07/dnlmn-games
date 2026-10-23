@@ -10,7 +10,7 @@ Use arrow keys / WASD, swipe, or mouse-drag on the board. Each move slides all t
 
 - Current board and personal best saved through the SDK. Completed losses clear only the board save. Reloading shows Resume game before restoring play. Restart confirmation protects the current board.
 - Shared menu, mute and fullscreen HUD, without platform pause controls. Tab switching freezes input and tile effects until return; cancelled touch gestures never count.
-- Viewport-height layout with a board that fits the remaining space, including short landscape screens. Touch/swipe, mouse-drag and keyboard instructions sit directly below the title.
+- Viewport-height layout with a board that fits the remaining space, including short landscape screens. The How to play button beside the title opens a keyboard-accessible instructions dialog with controls, a merge example and a simple strategy tip. The board and its effects stay paused until it closes.
 - Screen-reader cell labels, visible keyboard focus and reduced-motion support. Sound starts only after a gesture and follows global mute/pause.
 - Title-screen attract board uses real game rules without changing the player's save or best.
 

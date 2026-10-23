@@ -11,9 +11,11 @@
     <main id="stage" class="stage">
       <section class="game-shell" aria-label="2048 game">
         <header class="intro">
-          <h1>2048</h1>
-          <p id="instructions" class="instructions"><b>How to play</b> </p> 
-          <p class="instructions-detail"> Swipe, drag, or use <kbd>&uarr;</kbd><kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd> / WASD.<br />Equal tiles merge. Every merge adds to your score.</p>
+          <div class="title-row">
+            <h1>2048</h1>
+            <button id="how-to-play" class="how-to-play" type="button" aria-haspopup="dialog" aria-controls="instructions-dialog">How to play</button>
+          </div>
+          <p id="instructions" class="sr-only">Swipe, drag, or use arrow keys / WASD to slide the tiles. Merge equal tiles to reach 2048.</p>
           <div class="scores">
             <div class="score-box"><span>Score</span><output id="score" aria-live="off">0</output><span id="score-gain" aria-hidden="true"></span></div>
             <div class="score-box"><span>Personal best</span><output id="best" aria-live="off">0</output></div>
@@ -37,6 +39,20 @@
         <footer class="credit">Based on <a href="https://github.com/gabrielecirulli/2048" target="_blank" rel="noreferrer">Gabriele Cirulli's 2048</a> &middot; <a href="./UPSTREAM-LICENSE.txt" target="_blank" rel="noreferrer">MIT</a></footer>
       </section>
       <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+      <dialog id="instructions-dialog" class="instructions-dialog" aria-labelledby="instructions-title">
+        <h2 id="instructions-title">How to play</h2>
+        <div class="instructions-body">
+          <p>Join the numbers to make a <strong>2048</strong> tile.</p>
+          <ul class="play-steps">
+            <li><strong>Slide the board.</strong> Swipe on a phone, drag with a mouse, or use the arrow keys / WASD. All tiles move together.</li>
+            <li><strong>Match equal numbers.</strong> Two matching tiles combine when they slide into each other.</li>
+            <li><strong>Keep some space.</strong> A new tile appears after each move that changes the board. The game ends when no moves remain.</li>
+          </ul>
+          <div class="merge-example" role="img" aria-label="For example, 2 and 2 merge into 4"><span>2</span><b aria-hidden="true">+</b><span>2</span><b aria-hidden="true">&rarr;</b><span>4</span></div>
+          <p class="play-tip">Tip: keep your largest tile in a corner. Reach 2048 to win, or keep going for a bigger score.</p>
+        </div>
+        <form method="dialog" class="dialog-actions"><button class="primary" type="submit" autofocus>Got it</button></form>
+      </dialog>
       <dialog id="restart-dialog" aria-labelledby="restart-title">
         <h2 id="restart-title">A fresh start?</h2>
         <p>Your current board will be replaced. Your personal best stays.</p>

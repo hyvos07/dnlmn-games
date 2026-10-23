@@ -29,7 +29,7 @@ export class Ui {
   private readonly menu: HTMLElement;
   private readonly hud: HTMLElement;
   private readonly runeStrip: HTMLElement;
-  private readonly results: HTMLElement;
+  readonly results: HTMLElement;
   private readonly toast: HTMLElement;
   private selectedDifficulty: Difficulty = 'normal';
   private bests: Record<Difficulty, number> = { baby: 0, normal: 0, 'fast-hand': 0 };
@@ -197,7 +197,6 @@ export class Ui {
     );
     required<HTMLElement>(this.root, '#new-best').hidden = !isNewBest;
     this.showScreen('over');
-    this.againButton.focus({ preventScroll: true });
   }
 
   feedback(kind: 'hit' | 'mistake' | 'damage' | 'wave', message?: string): void {

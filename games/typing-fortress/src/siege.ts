@@ -1,4 +1,4 @@
-import type { Game } from '@games/sdk';
+import { type Game, ResultTransition } from '@games/sdk';
 import type { Sound } from './audio.ts';
 import {
   abandonPrefix,
@@ -31,12 +31,14 @@ export class Siege {
   private destroyed = false;
   private newBest = false;
   private composing = false;
+  private readonly result: ResultTransition;
 
   constructor(
     private readonly ui: Ui,
     private readonly sdk: Game,
     private readonly sound: Sound,
   ) {
+    this.result = new ResultTransition(sdk, ui.results);
     this.labels = new WordLabels(ui.labels);
     const best = (difficulty: Difficulty) => {
       const value = sdk.storage.get<unknown>(`best-${difficulty}`, 0);
@@ -141,6 +143,7 @@ export class Siege {
       'webglcontextlost',
       (event) => {
         event.preventDefault();
+        this.result.cancel();
         sdk.setPlaying(false);
         cancelAnimationFrame(this.frame);
         sound.pause();
@@ -170,7 +173,8 @@ export class Siege {
   }
 
   private start(): void {
-    if (!this.battlefield) return;
+    if (!this.battlefield || this.result.blocked) return;
+    this.result.cancel();
     this.state = createGame(this.ui.difficulty, Date.now(), this.ui.typingMode);
     this.composing = false;
     this.ui.typingInput.readOnly = this.state.typingMode === 'classic';
@@ -190,6 +194,8 @@ export class Siege {
   }
 
   private menu(): void {
+    if (this.result.blocked) return;
+    this.result.cancel();
     this.saveBest();
     this.state = null;
     this.sdk.setPlaying(false);
@@ -325,10 +331,17 @@ export class Siege {
   private finish(): void {
     if (!this.state) return;
     this.saveBest();
-    this.sdk.setPlaying(false);
     this.sound.pause();
+    this.ui.typingInput.readOnly = true;
     this.ui.setBests(this.bests);
-    this.ui.showResults(this.state, this.bests[this.state.difficulty], this.newBest);
+    const state = this.state;
+    this.result.begin(
+      () => this.ui.showResults(state, this.bests[state.difficulty], this.newBest),
+      () => {
+        this.sdk.setPlaying(false);
+        this.ui.againButton.focus({ preventScroll: true });
+      },
+    );
   }
 
   private loop(): void {
@@ -378,6 +391,7 @@ export class Siege {
   }
 
   destroy(): void {
+    this.result.destroy();
     this.saveBest();
     this.destroyed = true;
     cancelAnimationFrame(this.frame);

@@ -1,5 +1,5 @@
 import { getAccent } from '@games/config/theme';
-import { type Game, initGame } from '@games/sdk';
+import { type Game, initGame, ResultTransition } from '@games/sdk';
 import manifest from '../game.json';
 import { Sound } from './audio.ts';
 import {
@@ -16,7 +16,7 @@ import { visuals } from './visuals.ts';
 
 const KEYS = ['d', 'f', 'j', 'k'];
 const MISS_RESULTS_DELAY = 1.5;
-type Screen = 'menu' | 'playing' | 'miss' | 'over';
+type Screen = 'menu' | 'playing' | 'miss' | 'ending' | 'over';
 const MODES: Record<Mode, { name: string; description: string }> = {
   timed: {
     name: 'Normal',
@@ -49,6 +49,7 @@ export class TileRush {
   private readonly showLane = element<HTMLInputElement>('show-lane');
   private readonly showTapEffect = element<HTMLInputElement>('show-tap-effect');
   private readonly game: Game;
+  private readonly result: ResultTransition;
   private readonly sound: Sound;
   private round = createRound('timed', Math.random, 20, 24);
   private demo = createRound('practice', Math.random, 20, 24);
@@ -81,6 +82,7 @@ export class TileRush {
       onMuteChange: (muted) => this.sound?.setMuted(muted),
     });
     this.sound = new Sound(this.game.muted);
+    this.result = new ResultTransition(this.game, element('results'));
     this.game.onUnlock(() => this.sound.unlock());
     this.game.setPlaying(false);
     this.applyAppearance();
@@ -140,30 +142,11 @@ export class TileRush {
   }
 
   private bindInput(): void {
-    const results = element('results');
-    let pointerStartedInResults = false;
-    window.addEventListener(
-      'pointerdown',
-      (event) => {
-        pointerStartedInResults = results.contains(event.target as Node);
-      },
-      true,
-    );
-    // A miss reveals results during pointerdown. Its trailing click belongs to the
-    // board gesture, even if the new Again button appears beneath that finger.
-    results.addEventListener(
-      'click',
-      (event) => {
-        if (event.detail > 0 && !pointerStartedInResults) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      },
-      true,
-    );
     element('play').addEventListener('click', () => this.start());
     element('again').addEventListener('click', () => this.start());
     element('menu').addEventListener('click', () => {
+      if (this.result.blocked) return;
+      this.result.cancel();
       this.passedTiles = [];
       this.slideRows = 0;
       this.slideFrom = 0;
@@ -233,9 +216,10 @@ export class TileRush {
     this.screen = screen;
     this.stage.dataset.screen = screen;
     element('start').hidden = screen !== 'menu';
-    element('run-info').hidden = screen !== 'playing' && screen !== 'miss';
+    element('run-info').hidden = screen !== 'playing' && screen !== 'miss' && screen !== 'ending';
     element('results').hidden = screen !== 'over';
-    this.game.setPlaying(screen === 'playing' || screen === 'miss');
+    element('time-up').hidden = screen !== 'ending' || this.round.endReason !== 'time';
+    this.game.setPlaying(screen !== 'menu');
     document.querySelectorAll<HTMLButtonElement>('[data-lane]').forEach((button) => {
       button.disabled = screen !== 'playing';
     });
@@ -245,6 +229,8 @@ export class TileRush {
   }
 
   private start(): void {
+    if (this.result.blocked || this.screen === 'miss') return;
+    this.result.cancel();
     this.sound.unlock();
     this.runBestScore = this.bestScore;
     this.round = createRound(this.selectedMode(), Math.random, 20, 24);
@@ -336,9 +322,10 @@ export class TileRush {
   }
 
   private finish(): void {
+    const holdMs = this.screen === 'miss' ? 0 : 1000;
     const cps = clicksPerSecond(this.round);
     const newBest = this.round.score > this.runBestScore;
-    this.setScreen('over');
+    this.setScreen('ending');
     this.updateStats();
     element('final-score').textContent = String(this.round.score);
     element('result-reason').textContent =
@@ -349,8 +336,16 @@ export class TileRush {
           : 'Run complete';
     element('final-cps').textContent = cps.toFixed(2);
     element('new-best').hidden = !newBest;
-    element('announcement').textContent = `Run complete. ${this.round.score} targets hit.`;
-    element('again').focus({ preventScroll: true });
+    element('announcement').textContent =
+      `${this.round.endReason === 'time' ? "Time's up!" : 'Run complete.'} ${this.round.score} targets hit.`;
+    this.result.begin(
+      () => this.setScreen('over'),
+      () => {
+        this.game.setPlaying(false);
+        element('again').focus({ preventScroll: true });
+      },
+      holdMs,
+    );
   }
 
   private updateStats(): void {

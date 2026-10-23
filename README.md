@@ -29,4 +29,5 @@ Development pages and hot reload share port 4321. Stop dev before starting produ
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Repo layout, URL map, build pipeline, manifest, SDK |
 | [docs/DECISIONS.md](./docs/DECISIONS.md) | Architecture decision records |
 | [docs/ADDING_A_GAME.md](./docs/ADDING_A_GAME.md) | Step-by-step checklist for new games |
+| [docs/RELEASE.md](./docs/RELEASE.md) | Release checklist, static share previews and Google Search Console setup |
 | [docs/templates/GAME_README.md](./docs/templates/GAME_README.md) | One-pager template for each game |

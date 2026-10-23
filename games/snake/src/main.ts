@@ -70,7 +70,8 @@ const game = snake;
 bindInput(ui.stage, {
   turn: (dir) => game.turn(dir),
   primary: () => game.primary(),
+  canPrimary: () => game.canPrimary,
 });
 ui.playButton.addEventListener('click', () => game.primary());
-ui.againButton.addEventListener('click', () => game.primary(true));
+ui.againButton.addEventListener('click', () => game.primary());
 game.begin();

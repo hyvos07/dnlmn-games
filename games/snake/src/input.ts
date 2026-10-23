@@ -4,6 +4,7 @@ export interface InputHandlers {
   turn(dir: Dir): void;
   /** Start / restart (Space, Enter or a tap). Arrows/WASD also start from the title screen. */
   primary(source: 'key' | 'tap'): void;
+  canPrimary(): boolean;
 }
 
 const KEY_DIRS: Record<string, Dir> = {
@@ -48,12 +49,19 @@ export function bindInput(surface: HTMLElement, handlers: InputHandlers): () => 
     }
   };
 
-  let origin: { x: number; y: number; id: number; moved: boolean } | null = null;
+  let origin: { x: number; y: number; id: number; moved: boolean; primaryAllowed: boolean } | null =
+    null;
   const onDown = (event: PointerEvent) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     // Buttons handle their own clicks; don't double-fire `primary`.
     if ((event.target as Element | null)?.closest('button, a')) return;
-    origin = { x: event.clientX, y: event.clientY, id: event.pointerId, moved: false };
+    origin = {
+      x: event.clientX,
+      y: event.clientY,
+      id: event.pointerId,
+      moved: false,
+      primaryAllowed: handlers.canPrimary(),
+    };
   };
   const onMove = (event: PointerEvent) => {
     if (!origin || event.pointerId !== origin.id) return;
@@ -63,11 +71,11 @@ export function bindInput(surface: HTMLElement, handlers: InputHandlers): () => 
     const dir: Dir =
       Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
     handlers.turn(dir);
-    origin = { x: event.clientX, y: event.clientY, id: event.pointerId, moved: true };
+    origin = { ...origin, x: event.clientX, y: event.clientY, moved: true };
   };
   const onUp = (event: PointerEvent) => {
     if (!origin || event.pointerId !== origin.id) return;
-    if (!origin.moved) handlers.primary('tap');
+    if (!origin.moved && origin.primaryAllowed) handlers.primary('tap');
     origin = null;
   };
   const onCancel = () => {
